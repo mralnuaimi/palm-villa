@@ -1,0 +1,944 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Palm Villa — World Cup Night</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=DM+Sans:wght@300;400;500;600&display=swap');
+
+  :root {
+    --navy: #f0f4f8;
+    --navy-mid: #e2e8f0;
+    --navy-card: #ffffff;
+    --navy-border: #cbd5e1;
+    --gold: #b45309;
+    --gold-light: #92400e;
+    --gold-dim: #fde68a;
+    --white: #1e293b;
+    --white-dim: #475569;
+    --red: #dc2626;
+    --green: #16a34a;
+    --green-dim: #dcfce7;
+    --blue: #1d4ed8;
+    --blue-dim: #dbeafe;
+    --amber: #d97706;
+    --radius: 14px;
+    --shadow: 0 2px 12px rgba(0,0,0,0.1);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--navy);
+    color: var(--white);
+    min-height: 100vh;
+    padding: 0 0 60px 0;
+    background-image: none;
+  }
+
+  /* HEADER */
+  .hero {
+    position: relative;
+    overflow: hidden;
+    padding: 48px 32px 40px;
+    border-bottom: 1px solid var(--navy-border);
+    background: linear-gradient(135deg, #1e3a5f 0%, #1e293b 60%, #0f2444 100%);
+  }
+  .hero::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: 
+      repeating-linear-gradient(45deg, transparent, transparent 40px, rgba(201,168,76,0.015) 40px, rgba(201,168,76,0.015) 41px);
+    pointer-events: none;
+  }
+  .hero-inner { max-width: 1100px; margin: 0 auto; position: relative; }
+  .hero-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 24px; flex-wrap: wrap; }
+  
+  .hero-title {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(28px, 4vw, 46px);
+    font-weight: 900;
+    line-height: 1.1;
+    letter-spacing: -0.5px;
+    color: #ffffff;
+  }
+  .hero-title span { color: #fbbf24; }
+  .hero-sub {
+    margin-top: 8px;
+    font-size: 14px;
+    color: #94a3b8;
+    font-weight: 400;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+  }
+
+  .hero-badges { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 24px; }
+  .badge {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 6px 14px; border-radius: 100px;
+    font-size: 12px; font-weight: 600; letter-spacing: 0.5px;
+    border: 1px solid;
+  }
+  .badge-gold { background: rgba(251,191,36,0.2); border-color: #92400e; color: #fbbf24; }
+  .badge-blue { background: rgba(255,255,255,0.1); border-color: #334155; color: #93c5fd; }
+  .badge-dim { background: rgba(255,255,255,0.08); border-color: #334155; color: #94a3b8; }
+
+  .hero-meta {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: 12px; margin-top: 28px;
+  }
+  .meta-card {
+    background: rgba(255,255,255,0.08);
+    border: 1px solid rgba(255,255,255,0.15);
+    border-radius: 10px; padding: 12px 16px;
+  }
+  .meta-label { font-size: 11px; color: #94a3b8; text-transform: uppercase; letter-spacing: 1px; }
+  .meta-value { font-size: 18px; font-weight: 600; color: #ffffff; margin-top: 3px; }
+  .meta-value.gold { color: #fbbf24; }
+
+  /* LAYOUT */
+  .container { max-width: 1100px; margin: 0 auto; padding: 32px 24px 0; }
+  .section { margin-bottom: 36px; }
+  .section-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 22px; font-weight: 700;
+    color: var(--white); margin-bottom: 18px;
+    display: flex; align-items: center; gap: 10px;
+  }
+  .section-title::before {
+    content: '';
+    display: block; width: 3px; height: 22px;
+    background: var(--gold); border-radius: 2px;
+  }
+
+  /* SUMMARY CARDS */
+  .summary-grid {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 12px; margin-bottom: 28px;
+  }
+  .sum-card {
+    background: var(--navy-card); border: 1px solid var(--navy-border);
+    border-radius: var(--radius); padding: 18px 16px;
+    text-align: center; position: relative; overflow: hidden;
+    box-shadow: var(--shadow);
+  }
+  .sum-card::after {
+    content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px;
+  }
+  .sum-card.green::after { background: #16a34a; }
+  .sum-card.gold::after { background: #b45309; }
+  .sum-card.blue::after { background: #1d4ed8; }
+  .sum-card.red::after { background: #dc2626; }
+  .sum-card.amber::after { background: #d97706; }
+  .sum-card.teal::after { background: #0d9488; }
+  .sum-card.purple::after { background: #7c3aed; }
+  .sum-card.orange::after { background: #ea580c; }
+  .sum-card.slate::after { background: #64748b; }
+  .sum-num { font-size: 28px; font-weight: 700; }
+  .sum-card.green .sum-num { color: #16a34a; }
+  .sum-card.gold .sum-num { color: #b45309; }
+  .sum-card.blue .sum-num { color: #1d4ed8; }
+  .sum-card.red .sum-num { color: #dc2626; }
+  .sum-card.amber .sum-num { color: #d97706; }
+  .sum-card.teal .sum-num { color: #0d9488; }
+  .sum-card.purple .sum-num { color: #7c3aed; }
+  .sum-card.orange .sum-num { color: #ea580c; }
+  .sum-card.slate .sum-num { color: #64748b; }
+  .sum-label { font-size: 12px; color: var(--white-dim); margin-top: 4px; font-weight: 500; }
+
+  .section-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 22px; font-weight: 700;
+    color: #1e293b; margin-bottom: 18px;
+    display: flex; align-items: center; gap: 10px;
+  }
+  .section-title::before {
+    content: '';
+    display: block; width: 3px; height: 22px;
+    background: #b45309; border-radius: 2px;
+  }
+
+  .progress-wrap { margin-bottom: 28px; }
+  .progress-info { display: flex; justify-content: space-between; margin-bottom: 8px; font-size: 13px; color: #475569; font-weight: 500; }
+  .progress-bar {
+    height: 10px; background: #e2e8f0; border-radius: 100px; overflow: hidden;
+  }
+  .progress-fill {
+    height: 100%; background: linear-gradient(90deg, #b45309, #d97706);
+    border-radius: 100px; transition: width 0.4s ease;
+  }
+
+  .table-wrap { overflow-x: auto; border-radius: var(--radius); border: 1px solid var(--navy-border); background: #ffffff; }
+
+  .guest-name { font-weight: 600; white-space: nowrap; color: #1e293b; }
+  .you-tag {
+    display: inline-block; font-size: 9px; background: #b45309; color: #ffffff;
+    border-radius: 4px; padding: 1px 5px; margin-left: 6px; font-weight: 700;
+    text-transform: uppercase; letter-spacing: 0.5px; vertical-align: middle;
+  }
+
+  ::-webkit-scrollbar { width: 6px; height: 6px; }
+  ::-webkit-scrollbar-track { background: #f1f5f9; }
+  ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 3px; }
+  ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+
+  /* DECISION BADGE */
+  .decision-banner {
+    border-radius: var(--radius); padding: 16px 20px;
+    display: flex; align-items: center; gap: 14px;
+    margin-bottom: 28px; border: 1px solid;
+    font-weight: 600; font-size: 15px;
+  }
+  .decision-icon { font-size: 24px; }
+  .decision-banner.early { background: #fef3c7; border-color: #fbbf24; color: #92400e; }
+  .decision-banner.possible { background: #fff7ed; border-color: #f97316; color: #c2410c; }
+  .decision-banner.good { background: #eff6ff; border-color: #3b82f6; color: #1d4ed8; }
+  .decision-banner.ideal { background: #f0fdf4; border-color: #22c55e; color: #15803d; }
+
+  /* RSVP TABLE */
+  table { width: 100%; border-collapse: collapse; }
+  td { padding: 10px 14px; font-size: 13px; vertical-align: middle; }
+
+  select, input[type="text"] {
+    background: #ffffff; color: #1e293b;
+    border: 1px solid #cbd5e1; border-radius: 7px;
+    padding: 6px 10px; font-size: 12px; font-family: 'DM Sans', sans-serif;
+    outline: none; transition: border-color 0.2s;
+    width: 100%;
+  }
+  select:focus, input[type="text"]:focus { border-color: #b45309; }
+  .rsvp-select { min-width: 130px; }
+  .pay-select { min-width: 120px; }
+  .notes-input { min-width: 130px; }
+
+  .amount-due { font-weight: 700; color: #b45309; white-space: nowrap; font-size: 13px; }
+
+  select.status-confirmed { border-color: #16a34a; background: #f0fdf4; color: #15803d; font-weight: 600; }
+  select.status-available { border-color: #1d4ed8; background: #eff6ff; color: #1d4ed8; font-weight: 600; }
+  select.status-not_sleeping { border-color: #ea580c; background: #fff7ed; color: #c2410c; font-weight: 600; }
+  select.status-declined { border-color: #dc2626; background: #fef2f2; color: #dc2626; font-weight: 600; }
+  select.status-maybe { border-color: #d97706; background: #fffbeb; color: #92400e; }
+  select.status-contacted { border-color: #7c3aed; background: #f5f3ff; color: #6d28d9; }
+  select.status-not_contacted { border-color: #cbd5e1; color: #475569; }
+
+  select.pay-paid { border-color: #16a34a; background: #f0fdf4; color: #15803d; font-weight: 600; }
+  select.pay-pending { border-color: #d97706; background: #fffbeb; color: #92400e; font-weight: 600; }
+  select.pay-not_requested { border-color: #cbd5e1; color: #475569; }
+
+  /* COST CALCULATOR */
+  .calc-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+  @media (max-width: 640px) { .calc-grid { grid-template-columns: 1fr; } }
+
+  .calc-card {
+    background: var(--navy-card); border: 1px solid var(--navy-border);
+    border-radius: var(--radius); padding: 20px;
+    box-shadow: var(--shadow);
+  }
+  .calc-card h4 { font-size: 13px; color: var(--white-dim); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 14px; font-weight: 600; }
+  
+  .cost-input-row { display: flex; align-items: center; gap: 10px; margin-bottom: 14px; }
+  .cost-input-row label { font-size: 13px; color: var(--white-dim); white-space: nowrap; }
+  .cost-input {
+    background: #fffbeb; color: #92400e;
+    border: 2px solid #d97706; border-radius: 8px;
+    padding: 8px 12px; font-size: 16px; font-weight: 700;
+    font-family: 'DM Sans', sans-serif; width: 160px;
+  }
+  .cost-input:focus { outline: none; border-color: #b45309; }
+
+  .calc-result { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid #f1f5f9; }
+  .calc-result:last-child { border-bottom: none; }
+  .calc-result-label { font-size: 13px; color: var(--white-dim); }
+  .calc-result-value { font-size: 15px; font-weight: 700; color: var(--white); }
+  .calc-result-value.gold { color: #b45309; font-size: 20px; }
+  .calc-result-value.green { color: #16a34a; }
+
+  /* SCENARIO TABLE */
+  .scenario-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  .scenario-table th {
+    background: #f8fafc; color: #1e293b;
+    font-size: 11px; text-transform: uppercase; letter-spacing: 1px;
+    padding: 10px 14px; text-align: left; border-bottom: 2px solid var(--navy-border);
+  }
+  .scenario-table td { padding: 10px 14px; border-bottom: 1px solid #f1f5f9; color: #1e293b; }
+  .scenario-table tr:last-child td { border-bottom: none; }
+  .scenario-table tr.highlight td { background: #fffbeb; font-weight: 700; color: #92400e; }
+  .scenario-table tr.highlight-green td { background: #f0fdf4; font-weight: 700; color: #15803d; }
+  .scenario-table tr.highlight-blue td { background: #eff6ff; font-weight: 700; color: #1d4ed8; }
+  .current-tag {
+    display: inline-block; font-size: 9px; background: #b45309; color: #ffffff;
+    border-radius: 4px; padding: 1px 5px; margin-left: 6px; font-weight: 700;
+    text-transform: uppercase; letter-spacing: 0.5px;
+  }
+
+  /* MATCHES */
+  .matches-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px; }
+  .match-card {
+    background: var(--navy-card); border: 1px solid var(--navy-border);
+    border-radius: var(--radius); padding: 20px; position: relative; overflow: hidden;
+    box-shadow: var(--shadow);
+  }
+  .match-card::before {
+    content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px;
+    background: linear-gradient(90deg, #b45309, #d97706);
+  }
+  .match-round { font-size: 11px; color: #b45309; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px; font-weight: 700; }
+  .match-teams { font-family: 'Playfair Display', serif; font-size: 20px; font-weight: 700; color: #1e293b; }
+  .match-vs { color: #b45309; margin: 0 8px; font-size: 14px; }
+  .match-venue { font-size: 12px; color: #475569; margin-top: 8px; }
+  .match-flag { font-size: 20px; }
+  .match-note { margin-top: 10px; font-size: 11px; background: #fffbeb; border: 1px solid #fbbf24; border-radius: 7px; padding: 6px 10px; color: #92400e; }
+  .match-disclaimer { margin-top: 14px; font-size: 11px; color: #64748b; font-style: italic; }
+
+  /* PHASES */
+  .phases-grid { display: flex; flex-direction: column; gap: 12px; }
+  .phase-card {
+    background: var(--navy-card); border: 1px solid var(--navy-border);
+    border-radius: var(--radius); padding: 16px 20px;
+    box-shadow: var(--shadow);
+    display: flex; align-items: flex-start; gap: 16px;
+  }
+  .phase-num {
+    width: 28px; height: 28px; border-radius: 50%;
+    background: #fffbeb; border: 2px solid #b45309;
+    color: #b45309; font-size: 12px; font-weight: 700;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0; margin-top: 1px;
+  }
+  .phase-body { flex: 1; }
+  .phase-title { font-size: 14px; font-weight: 700; color: #1e293b; margin-bottom: 8px; }
+  .phase-checklist { list-style: none; display: flex; flex-wrap: wrap; gap: 2px 24px; }
+  .phase-checklist li {
+    font-size: 12px; color: #475569; padding: 2px 0;
+    display: flex; align-items: flex-start; gap: 6px;
+  }
+  .phase-checklist li::before { content: '◦'; color: #b45309; flex-shrink: 0; }
+
+  /* WHATSAPP */
+  .wa-wrap {
+    background: var(--navy-card); border: 1px solid var(--navy-border);
+    border-radius: var(--radius); padding: 20px;
+    box-shadow: var(--shadow);
+  }
+  .wa-label { font-size: 12px; color: #475569; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 10px; font-weight: 600; }
+  #wa-msg {
+    width: 100%; min-height: 120px; background: #f8fafc;
+    border: 1px solid #cbd5e1; border-radius: 10px;
+    color: #1e293b; font-size: 14px; font-family: 'DM Sans', sans-serif;
+    padding: 14px; resize: vertical; line-height: 1.6;
+    outline: none;
+  }
+  #wa-msg:focus { border-color: #b45309; }
+
+  .btn-gold { background: #b45309; color: #ffffff; }
+  .btn-gold:hover { background: #92400e; }
+  .btn-outline { background: transparent; border: 1px solid #cbd5e1; color: #475569; }
+  .btn-outline:hover { border-color: #b45309; color: #b45309; }
+  .btn-green { background: #f0fdf4; border: 1px solid #16a34a; color: #15803d; }
+  .btn-green:hover { background: #dcfce7; }
+
+  /* LAYOUT */
+  .container { max-width: 1100px; margin: 0 auto; padding: 32px 24px 0; }
+  .section { margin-bottom: 36px; }
+
+  /* SUMMARY GRID */
+  .summary-grid {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 12px; margin-bottom: 28px;
+  }
+
+  /* BUTTONS */
+  .btn {
+    display: inline-flex; align-items: center; gap: 7px;
+    padding: 9px 18px; border-radius: 8px; font-size: 13px;
+    font-weight: 600; cursor: pointer; border: none;
+    font-family: 'DM Sans', sans-serif; transition: all 0.2s;
+  }
+
+  .add-guest-row {
+    display: flex; gap: 10px; align-items: center;
+    margin-top: 12px; flex-wrap: wrap;
+  }
+  .add-guest-row input[type="text"] {
+    flex: 1; min-width: 200px; max-width: 340px;
+    padding: 9px 14px; font-size: 14px;
+    border: 1px solid #cbd5e1; border-radius: 8px;
+    background: #fff; color: #1e293b;
+  }
+  .add-guest-row input[type="text"]:focus { border-color: #b45309; outline: none; }
+
+  .btn-row { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 14px; }
+
+  @media (max-width: 640px) {
+    .hero { padding: 32px 20px 28px; }
+    .container { padding: 20px 16px 0; }
+    .hero-meta { grid-template-columns: repeat(2, 1fr); }
+  }
+</style>
+</head>
+<body>
+
+<!-- HERO -->
+<div class="hero">
+  <div class="hero-inner">
+    <div class="hero-top">
+      <div>
+        <div class="hero-title">Palm Villa<br><span>World Cup Night</span></div>
+        <div class="hero-sub">Private Planning Dashboard · Dubai 2026</div>
+      </div>
+      <div style="text-align:right; padding-top:4px;">
+        <div class="badge badge-dim" style="margin-bottom:8px;">🔒 Private — Not shared</div><br>
+        <div class="badge badge-gold">⚽ Round of 16 · 4 July</div>
+      </div>
+    </div>
+    <div class="hero-meta">
+      <div class="meta-card">
+        <div class="meta-label">Dates</div>
+        <div class="meta-value">4–5 July 2026</div>
+      </div>
+      <div class="meta-card">
+        <div class="meta-label">Location</div>
+        <div class="meta-value">Palm Jumeirah</div>
+      </div>
+      <div class="meta-card">
+        <div class="meta-label">Airbnb Price</div>
+        <div class="meta-value gold" id="hero-price">AED 9,646</div>
+      </div>
+      <div class="meta-card">
+        <div class="meta-label">Villa Capacity</div>
+        <div class="meta-value">12 guests</div>
+      </div>
+      <div class="meta-card">
+        <div class="meta-label">Status</div>
+        <div class="meta-value" style="font-size:13px; color:#f59e0b;">Private RSVP Phase</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="container">
+
+  <!-- SUMMARY CARDS -->
+  <div class="section" style="margin-top:32px;">
+    <div class="summary-grid">
+      <div class="sum-card green">
+        <div class="sum-num" id="s-confirmed">0</div>
+        <div class="sum-label">Confirmed</div>
+      </div>
+      <div class="sum-card blue">
+        <div class="sum-num" id="s-available">0</div>
+        <div class="sum-label">Available</div>
+      </div>
+      <div class="sum-card teal">
+        <div class="sum-num" id="s-likely">0</div>
+        <div class="sum-label">Likely Joining</div>
+      </div>
+      <div class="sum-card purple">
+        <div class="sum-num" id="s-contacted">0</div>
+        <div class="sum-label">Contacted</div>
+      </div>
+      <div class="sum-card amber">
+        <div class="sum-num" id="s-maybe">0</div>
+        <div class="sum-label">Maybe</div>
+      </div>
+      <div class="sum-card orange">
+        <div class="sum-num" id="s-not_sleeping">0</div>
+        <div class="sum-label">Not Sleeping</div>
+      </div>
+      <div class="sum-card red">
+        <div class="sum-num" id="s-declined">0</div>
+        <div class="sum-label">Declined</div>
+      </div>
+      <div class="sum-card slate">
+        <div class="sum-num" id="s-not_contacted">0</div>
+        <div class="sum-label">Not Contacted</div>
+      </div>
+      <div class="sum-card gold">
+        <div class="sum-num" id="s-cpp" style="font-size:18px;">—</div>
+        <div class="sum-label">Cost / Person</div>
+      </div>
+      <div class="sum-card blue">
+        <div class="sum-num" id="s-spots">12</div>
+        <div class="sum-label">Spots Remaining</div>
+      </div>
+    </div>
+
+    <!-- PROGRESS BAR -->
+    <div class="progress-wrap">
+      <div class="progress-info">
+        <span>Likely guests vs capacity</span>
+        <span id="prog-label">0 / 12</span>
+      </div>
+      <div class="progress-bar">
+        <div class="progress-fill" id="prog-fill" style="width:0%"></div>
+      </div>
+    </div>
+
+    <!-- DECISION BANNER -->
+    <div class="decision-banner early" id="decision-banner">
+      <span class="decision-icon" id="decision-icon">⏳</span>
+      <span id="decision-text">Too early to book — collect more RSVPs first</span>
+    </div>
+  </div>
+
+  <!-- RSVP TRACKER -->
+  <div class="section">
+    <div style="display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:12px; margin-bottom:18px;">
+      <div class="section-title" style="margin-bottom:0;">RSVP Tracker</div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;">
+        <button class="btn btn-outline" onclick="exportData()">⬇ Export</button>
+        <label class="btn btn-outline" style="cursor:pointer;">⬆ Import <input type="file" accept=".json" onchange="importData(event)" style="display:none;"></label>
+        <button class="btn btn-outline" onclick="resetAll()">↺ Reset</button>
+      </div>
+    </div>
+    <div class="table-wrap">
+      <table id="rsvp-table">
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Guest Name</th>
+            <th>RSVP Status</th>
+            <th>Payment</th>
+            <th>Amount Due</th>
+          </tr>
+        </thead>
+        <tbody id="rsvp-body">
+        </tbody>
+      </table>
+    </div>
+    <div class="add-guest-row">
+      <input type="text" id="new-guest-input" placeholder="Enter name and press Add…" onkeydown="if(event.key==='Enter') addGuest()">
+      <button class="btn btn-gold" onclick="addGuest()">+ Add Guest</button>
+    </div>
+  </div>
+
+  <!-- COST CALCULATOR -->
+  <div class="section">
+    <div class="section-title">Cost Calculator</div>
+    <div class="calc-grid">
+      <div class="calc-card">
+        <h4>Live Calculation</h4>
+        <div class="cost-input-row">
+          <label>Airbnb Total (AED)</label>
+          <input class="cost-input" type="number" id="total-cost" value="9646" oninput="recalculate()">
+        </div>
+        <div class="calc-result">
+          <span class="calc-result-label">Likely joining</span>
+          <span class="calc-result-value" id="c-likely">0</span>
+        </div>
+        <div class="calc-result">
+          <span class="calc-result-label">Cost per person</span>
+          <span class="calc-result-value gold" id="c-cpp">—</span>
+        </div>
+        <div class="calc-result">
+          <span class="calc-result-label">Remaining spots</span>
+          <span class="calc-result-value" id="c-spots">12</span>
+        </div>
+        <div class="calc-result">
+          <span class="calc-result-label">Total collected (Paid)</span>
+          <span class="calc-result-value green" id="c-collected">AED 0</span>
+        </div>
+        <div class="calc-result">
+          <span class="calc-result-label">Remaining balance</span>
+          <span class="calc-result-value" id="c-balance">AED 9,646</span>
+        </div>
+      </div>
+
+      <div class="calc-card">
+        <h4>Cost Scenarios</h4>
+        <div class="table-wrap" style="border:none;">
+          <table class="scenario-table">
+            <thead>
+              <tr>
+                <th>People</th>
+                <th>Cost / Person</th>
+                <th>Note</th>
+              </tr>
+            </thead>
+            <tbody id="scenario-body">
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- WORLD CUP MATCHES -->
+  <div class="section">
+    <div class="section-title">World Cup Match Night</div>
+    <div class="matches-grid">
+      <div class="match-card">
+        <div class="match-round">⚽ Round of 16 · Saturday 4 July 2026</div>
+        <div class="match-teams">
+          <span class="match-flag">🇩🇪</span> Germany
+          <span class="match-vs">vs</span>
+          France <span class="match-flag">🇫🇷</span>
+        </div>
+        <div class="match-venue">📍 Philadelphia Stadium · Philadelphia, USA</div>
+      </div>
+      <div class="match-card">
+        <div class="match-round">⚽ Round of 16 · Saturday 4 July 2026</div>
+        <div class="match-teams">
+          <span class="match-flag">🇰🇷</span> Korea
+          <span class="match-vs">vs</span>
+          Morocco <span class="match-flag">🇲🇦</span>
+        </div>
+        <div class="match-venue">📍 NRG Stadium · Houston, USA</div>
+        <div class="match-note">⚠ Netherlands may replace Morocco depending on group stage results</div>
+      </div>
+    </div>
+    <div class="match-disclaimer">* Exact teams may change depending on group-stage results. This dashboard uses the current expected bracket scenario.</div>
+  </div>
+
+  <!-- ANNOUNCEMENT PLANNER -->
+  <div class="section">
+    <div class="section-title">Announcement Planner</div>
+    <div class="phases-grid">
+      <div class="phase-card">
+        <div class="phase-num">1</div>
+        <div class="phase-body">
+          <div class="phase-title">Private Buy-In Phase</div>
+          <ul class="phase-checklist">
+            <li>Contact close circle individually</li>
+            <li>Share villa concept privately</li>
+            <li>Gauge interest before committing</li>
+            <li>Aim for 8+ soft confirms</li>
+            <li>Update RSVP tracker as replies come in</li>
+          </ul>
+        </div>
+      </div>
+      <div class="phase-card">
+        <div class="phase-num">2</div>
+        <div class="phase-body">
+          <div class="phase-title">Group Announcement Phase</div>
+          <ul class="phase-checklist">
+            <li>Once 6+ confirmed, post to group</li>
+            <li>Send villa details and photos</li>
+            <li>Set a reply deadline (suggest 3–4 days)</li>
+            <li>Pin message in group</li>
+          </ul>
+        </div>
+      </div>
+      <div class="phase-card">
+        <div class="phase-num">3</div>
+        <div class="phase-body">
+          <div class="phase-title">Payment Collection Phase</div>
+          <ul class="phase-checklist">
+            <li>Confirm final headcount</li>
+            <li>Calculate cost per person</li>
+            <li>Request transfers individually</li>
+            <li>Mark payment status in tracker</li>
+            <li>Set payment deadline before booking</li>
+          </ul>
+        </div>
+      </div>
+      <div class="phase-card">
+        <div class="phase-num">4</div>
+        <div class="phase-body">
+          <div class="phase-title">Booking Confirmation Phase</div>
+          <ul class="phase-checklist">
+            <li>Verify full amount collected</li>
+            <li>Book Airbnb and confirm reservation</li>
+            <li>Share check-in details with group</li>
+            <li>Coordinate arrival times and logistics</li>
+            <li>Confirm match streaming setup for villa</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+</div>
+
+<div id="toast"></div>
+
+<script>
+const GUESTS_BASE = [
+  { name: 'Khaled Alnuaimi', you: true },
+  { name: 'Abdulla Almansoori' },
+  { name: 'Adnan' },
+  { name: 'Ahmed Alzaabi' },
+  { name: 'Ahmed Bu Atabeh' },
+  { name: 'Ali Almualla' },
+  { name: 'Ali Alsharqi' },
+  { name: 'Easa Alblooshi' },
+  { name: 'Hadef Alshamsi' },
+  { name: 'Hamad Shekar' },
+  { name: 'Jasem Alalyak' },
+  { name: 'Jasem Alnuaimi' },
+  { name: 'Juma Alotaiba' },
+  { name: 'Mohamad Almehrzi' },
+  { name: 'Mohamed Alsharhan' },
+  { name: 'Muhannad Alnouktha' },
+  { name: 'Munther Falah' },
+  { name: 'Saeed Almansoori' },
+  { name: 'Saif Alkaabi' },
+  { name: 'Sultan Alshehhi' },
+  { name: 'Waleed Shakari' },
+];
+let GUESTS = [...GUESTS_BASE];
+
+const RSVP_OPTIONS = ['not_contacted','contacted','not_sleeping','confirmed','maybe','declined','available'];
+const RSVP_LABELS = { not_contacted: 'Not Contacted', contacted: 'Contacted', not_sleeping: 'Not Sleeping', confirmed: 'Confirmed', maybe: 'Maybe', declined: 'Declined', available: 'Available' };
+const PAY_OPTIONS = ['not_requested','pending','paid'];
+const PAY_LABELS = { not_requested: 'Not Requested', pending: 'Pending', paid: 'Paid' };
+
+const CAPACITY = 12;
+
+let state = {};
+
+function loadState() {
+  try {
+    const s = localStorage.getItem('palmVillaState');
+    if (s) {
+      const parsed = JSON.parse(s);
+      if (parsed.__extra) {
+        parsed.__extra.forEach(name => {
+          if (!GUESTS.find(g => g.name === name)) {
+            let insertAt = GUESTS.length;
+            for (let i = 1; i < GUESTS.length; i++) {
+              if (name.localeCompare(GUESTS[i].name) < 0) { insertAt = i; break; }
+            }
+            GUESTS.splice(insertAt, 0, { name });
+          }
+        });
+      }
+      return parsed;
+    }
+  } catch(e) {}
+  const d = {};
+  GUESTS.forEach(g => {
+    d[g.name] = { rsvp: g.you ? 'confirmed' : 'not_contacted', pay: 'not_requested' };
+  });
+  return d;
+}
+
+function saveState() {
+  const extra = GUESTS.filter(g => !GUESTS_BASE.find(b => b.name === g.name)).map(g => g.name);
+  state.__extra = extra;
+  try { localStorage.setItem('palmVillaState', JSON.stringify(state)); } catch(e) {}
+}
+
+function addGuest() {
+  const input = document.getElementById('new-guest-input');
+  const name = input.value.trim();
+  if (!name) return;
+  if (GUESTS.find(g => g.name === name)) { toast('Already in list'); return; }
+
+  let insertAt = GUESTS.length;
+  for (let i = 1; i < GUESTS.length; i++) {
+    if (name.localeCompare(GUESTS[i].name) < 0) { insertAt = i; break; }
+  }
+  GUESTS.splice(insertAt, 0, { name });
+  state[name] = { rsvp: 'not_contacted', pay: 'not_requested' };
+
+  saveState();
+  buildTable();
+  input.value = '';
+  input.focus();
+  toast(`${name} added`);
+}
+
+function fmt(n) {
+  return 'AED ' + n.toLocaleString('en-AE', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+}
+
+function buildTable() {
+  const tbody = document.getElementById('rsvp-body');
+  tbody.innerHTML = '';
+  GUESTS.forEach((g, i) => {
+    if (!state[g.name]) state[g.name] = { rsvp: g.you ? 'confirmed' : 'not_contacted', pay: 'not_requested' };
+    const s = state[g.name];
+    const tr = document.createElement('tr');
+    if (g.you) tr.className = 'you-row';
+    const safeName = g.name.replace(/'/g, "\\'");
+    tr.innerHTML = `
+      <td style="color:#94a3b8;font-size:12px;">${i + 1}</td>
+      <td class="guest-name">${g.name}${g.you ? '<span class="you-tag">You</span>' : ''}</td>
+      <td>
+        <select class="rsvp-select status-${s.rsvp}" onchange="updateRsvp('${safeName}', this.value, this)">
+          ${RSVP_OPTIONS.map(o => `<option value="${o}"${s.rsvp===o?' selected':''}>${RSVP_LABELS[o]}</option>`).join('')}
+        </select>
+      </td>
+      <td>
+        <select class="pay-select pay-${s.pay}" onchange="updatePay('${safeName}', this.value, this)">
+          ${PAY_OPTIONS.map(o => `<option value="${o}"${s.pay===o?' selected':''}>${PAY_LABELS[o]}</option>`).join('')}
+        </select>
+      </td>
+      <td class="amount-due" id="amt-${i}">—</td>
+    `;
+    tbody.appendChild(tr);
+  });
+  recalculate();
+}
+
+function updateRsvp(name, val, el) {
+  if (!state[name]) state[name] = { rsvp: 'not_contacted', pay: 'not_requested' };
+  state[name].rsvp = val;
+  el.className = `rsvp-select status-${val}`;
+  saveState(); recalculate();
+}
+
+function updatePay(name, val, el) {
+  if (!state[name]) state[name] = { rsvp: 'not_contacted', pay: 'not_requested' };
+  state[name].pay = val;
+  el.className = `pay-select pay-${val}`;
+  saveState(); recalculate();
+}
+
+function recalculate() {
+  const total = parseFloat(document.getElementById('total-cost').value) || 9646;
+  document.getElementById('hero-price').textContent = fmt(total).replace('AED ', 'AED ');
+
+  let confirmed = 0, available = 0, not_sleeping = 0, declined = 0, maybe = 0, contacted = 0, not_contacted = 0, paidCount = 0;
+  GUESTS.forEach((g) => {
+    const s = state[g.name] || { rsvp: 'not_contacted', pay: 'not_requested' };
+    if (s.rsvp === 'confirmed') confirmed++;
+    else if (s.rsvp === 'available') available++;
+    else if (s.rsvp === 'not_sleeping') not_sleeping++;
+    else if (s.rsvp === 'declined') declined++;
+    else if (s.rsvp === 'maybe') maybe++;
+    else if (s.rsvp === 'contacted') contacted++;
+    else not_contacted++;
+    if (s.pay === 'paid') paidCount++;
+  });
+  const likely = confirmed + available;
+  const cpp = likely > 0 ? total / likely : 0;
+  const spots = Math.max(0, CAPACITY - likely);
+  const collected = paidCount * cpp;
+  const balance = total - collected;
+
+  // Update amounts
+  GUESTS.forEach((g, i) => {
+    const s = state[g.name] || {};
+    const el = document.getElementById(`amt-${i}`);
+    if (!el) return;
+    const joining = s.rsvp === 'confirmed' || s.rsvp === 'available';
+    el.textContent = (joining && likely > 0) ? fmt(cpp) : '—';
+  });
+
+  // Summary cards
+  document.getElementById('s-confirmed').textContent = confirmed;
+  document.getElementById('s-available').textContent = available;
+  document.getElementById('s-likely').textContent = likely;
+  document.getElementById('s-contacted').textContent = contacted;
+  document.getElementById('s-maybe').textContent = maybe;
+  document.getElementById('s-not_sleeping').textContent = not_sleeping;
+  document.getElementById('s-declined').textContent = declined;
+  document.getElementById('s-not_contacted').textContent = not_contacted;
+  document.getElementById('s-cpp').textContent = likely > 0 ? fmt(cpp) : '—';
+  document.getElementById('s-spots').textContent = spots;
+
+  // Progress
+  const pct = Math.min(100, (likely / CAPACITY) * 100);
+  document.getElementById('prog-fill').style.width = pct + '%';
+  document.getElementById('prog-label').textContent = `${likely} / ${CAPACITY}`;
+
+  // Decision
+  const db = document.getElementById('decision-banner');
+  const dt = document.getElementById('decision-text');
+  const di = document.getElementById('decision-icon');
+  db.className = 'decision-banner';
+  if (likely < 6) {
+    db.classList.add('early'); di.textContent = '⏳'; dt.textContent = 'Too early to book — collect more RSVPs first';
+  } else if (likely <= 7) {
+    db.classList.add('possible'); di.textContent = '🟡'; dt.textContent = 'Possible, but expensive per person';
+  } else if (likely <= 9) {
+    db.classList.add('good'); di.textContent = '✅'; dt.textContent = 'Good enough to consider booking';
+  } else {
+    db.classList.add('ideal'); di.textContent = '🎉'; dt.textContent = 'Strong group size — ideal to book!';
+  }
+
+  // Calculator card
+  document.getElementById('c-likely').textContent = likely;
+  document.getElementById('c-cpp').textContent = likely > 0 ? fmt(cpp) : '—';
+  document.getElementById('c-spots').textContent = spots;
+  document.getElementById('c-collected').textContent = fmt(collected);
+  document.getElementById('c-balance').textContent = fmt(balance);
+
+  // Scenarios
+  buildScenarios(total, likely);
+}
+
+function buildScenarios(total, currentLikely) {
+  const tbody = document.getElementById('scenario-body');
+  tbody.innerHTML = '';
+  const highlights = { 8: 'highlight', 10: 'highlight-green', 12: 'highlight-blue' };
+  for (let n = 6; n <= 12; n++) {
+    const cpp = total / n;
+    const tr = document.createElement('tr');
+    if (highlights[n]) tr.className = highlights[n];
+    const isCurrent = n === currentLikely;
+    tr.innerHTML = `
+      <td>${n} people${isCurrent ? '<span class="current-tag">Now</span>' : ''}</td>
+      <td>${fmt(cpp)}</td>
+      <td style="font-size:11px;color:var(--white-dim);">${n===8?'Listed guest count':n===10?'Comfortable split':n===12?'Max capacity':''}</td>
+    `;
+    tbody.appendChild(tr);
+  }
+}
+
+function exportData() {
+  const blob = new Blob([JSON.stringify(state, null, 2)], { type: 'application/json' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'palm-villa-rsvp.json';
+  a.click();
+  toast('Exported!');
+}
+
+function importData(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    try {
+      const parsed = JSON.parse(e.target.result);
+      // Restore extra guests first
+      if (parsed.__extra) {
+        parsed.__extra.forEach(name => {
+          if (!GUESTS.find(g => g.name === name)) {
+            let insertAt = GUESTS.length;
+            for (let i = 1; i < GUESTS.length; i++) {
+              if (name.localeCompare(GUESTS[i].name) < 0) { insertAt = i; break; }
+            }
+            GUESTS.splice(insertAt, 0, { name });
+          }
+        });
+      }
+      state = parsed;
+      saveState();
+      buildTable();
+      toast('Imported successfully!');
+    } catch(err) { toast('Invalid file'); }
+  };
+  reader.readAsText(file);
+  event.target.value = '';
+}
+
+function resetAll() {
+  if (!confirm('Reset all RSVP and payment statuses?')) return;
+  GUESTS.forEach(g => {
+    state[g.name] = { rsvp: g.you ? 'confirmed' : 'not_contacted', pay: 'not_requested' };
+  });
+  saveState();
+  buildTable();
+  toast('All statuses reset');
+}
+
+function toast(msg) {
+  const el = document.getElementById('toast');
+  el.textContent = msg; el.classList.add('show');
+  setTimeout(() => el.classList.remove('show'), 2000);
+}
+
+// Init
+state = loadState();
+buildTable();
+</script>
+</body>
+</html>
