@@ -277,8 +277,8 @@ select.p-not_requested{ background-color: #f8f9fa; border-color: #e2e8f0; color:
     <div class="section-title">Overview</div>
     <div class="stats-grid">
       <div class="stat-card green">  <div class="stat-num" id="st-confirmed">—</div>  <div class="stat-label">Confirmed</div></div>
-      <div class="stat-card blue">   <div class="stat-num" id="st-available">—</div>   <div class="stat-label">Available</div></div>
-      <div class="stat-card teal">   <div class="stat-num" id="st-likely">—</div>      <div class="stat-label">Likely Joining</div></div>
+      <div class="stat-card teal">   <div class="stat-num" id="st-willjoin">—</div>    <div class="stat-label">Will Join</div></div>
+      <div class="stat-card blue">   <div class="stat-num" id="st-likely">—</div>      <div class="stat-label">Likely Joining</div></div>
       <div class="stat-card purple"> <div class="stat-num" id="st-contacted">—</div>   <div class="stat-label">Contacted</div></div>
       <div class="stat-card amber">  <div class="stat-num" id="st-maybe">—</div>       <div class="stat-label">Maybe</div></div>
       <div class="stat-card orange"> <div class="stat-num" id="st-not_sleeping">—</div><div class="stat-label">Not Sleeping</div></div>
@@ -341,11 +341,15 @@ select.p-not_requested{ background-color: #f8f9fa; border-color: #e2e8f0; color:
         <div class="calc-row"><span class="calc-row-label">Balance due</span>        <span class="calc-row-value" id="c-balance">—</span></div>
       </div>
       <div class="calc-panel">
-        <h3>Scenarios</h3>
-        <table class="scenario-table">
-          <thead><tr><th>Guests</th><th>Cost / person</th></tr></thead>
-          <tbody id="scenario-body"></tbody>
-        </table>
+        <h3>Payment Status</h3>
+        <div class="calc-row"><span class="calc-row-label">✅ Paid</span>          <span class="calc-row-value green" id="p-paid-count">—</span></div>
+        <div class="calc-row"><span class="calc-row-label">⏳ Pending</span>       <span class="calc-row-value" style="color:#d97706;" id="p-pending-count">—</span></div>
+        <div class="calc-row"><span class="calc-row-label">— Not requested</span>  <span class="calc-row-value" style="color:#94a3b8;" id="p-none-count">—</span></div>
+        <div class="calc-row" style="margin-top:8px; padding-top:12px; border-top:2px solid #f1f5f9; border-bottom:none;">
+          <span class="calc-row-label">Total collected</span>
+          <span class="calc-row-value green" id="p-collected">AED 0.00</span>
+        </div>
+        <div class="calc-row"><span class="calc-row-label">Still outstanding</span><span class="calc-row-value" style="color:#ef4444;" id="p-outstanding">—</span></div>
       </div>
     </div>
   </div>
@@ -637,21 +641,24 @@ async function importJSON(e) {
 function recalculate() {
   const total = parseFloat(document.getElementById('total-cost').value) || BASE_COST;
   let counts = { confirmed:0, available:0, not_sleeping:0, declined:0, maybe:0, contacted:0, not_contacted:0 };
-  let paidCount = 0;
+  let paidCount = 0, pendingCount = 0, noneCount = 0;
 
   guests.forEach(g => {
     const r = rows[g.name] || { rsvp: 'not_contacted', pay: 'not_requested' };
     counts[r.rsvp] = (counts[r.rsvp] || 0) + 1;
-    if (r.pay === 'paid') paidCount++;
+    if      (r.pay === 'paid')          paidCount++;
+    else if (r.pay === 'pending')       pendingCount++;
+    else                                noneCount++;
   });
 
   const likely    = (counts.confirmed || 0) + (counts.available || 0);
+  const willjoin  = (counts.confirmed || 0) + (counts.maybe || 0) + (counts.not_sleeping || 0);
   const cpp       = likely > 0 ? total / likely : 0;
   const spots     = Math.max(0, CAPACITY - likely);
   const collected = paidCount * cpp;
   const balance   = total - collected;
 
-  // Update amount-due cells
+  // Amount-due cells
   guests.forEach((g, i) => {
     const el = document.getElementById('amt-' + i);
     if (!el) return;
@@ -663,7 +670,7 @@ function recalculate() {
   // Stats
   const s = (id, val) => { const el = document.getElementById(id); if (el) el.textContent = val; };
   s('st-confirmed',    counts.confirmed    || 0);
-  s('st-available',    counts.available    || 0);
+  s('st-willjoin',     willjoin);
   s('st-likely',       likely);
   s('st-contacted',    counts.contacted    || 0);
   s('st-maybe',        counts.maybe        || 0);
@@ -692,25 +699,19 @@ function recalculate() {
     else                  { dec.classList.add('ideal');    dico.textContent = '🎉'; dtxt.textContent = 'Strong group — ideal time to book!'; }
   }
 
-  // Calculator
+  // Calculator — live split
   s('c-likely',    likely);
   s('c-cpp',       likely > 0 ? fmt(cpp) : '—');
   s('c-spots',     spots);
   s('c-collected', fmt(collected));
   s('c-balance',   fmt(balance));
 
-  // Scenarios
-  const sb = document.getElementById('scenario-body');
-  if (sb) {
-    sb.innerHTML = '';
-    for (let n = 6; n <= 12; n++) {
-      const tr  = document.createElement('tr');
-      const cls = n === 8 ? 's-highlight' : n === 10 ? 's-green' : n === 12 ? 's-blue' : '';
-      if (cls) tr.className = cls;
-      tr.innerHTML = `<td>${n} people${n===likely?'<span class="now-tag">Now</span>':''}</td><td>${fmt(total/n)}</td>`;
-      sb.appendChild(tr);
-    }
-  }
+  // Payment status panel
+  s('p-paid-count',    paidCount);
+  s('p-pending-count', pendingCount);
+  s('p-none-count',    noneCount);
+  s('p-collected',     fmt(collected));
+  s('p-outstanding',   fmt(Math.max(0, balance)));
 }
 
 // ── REALTIME ──────────────────────────────────────────────────
