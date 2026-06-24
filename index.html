@@ -699,30 +699,80 @@ let state = {};
 // ── SUPABASE ─────────────────────────────────────────────────
 async function loadFromSupabase() {
   showLoader(true);
-  const { data, error } = await supabase.from('rsvp').select('*');
-  if (error) { console.error(error); showLoader(false); return; }
-
-  const newState = {};
-  const extraNames = [];
-  data.forEach(row => {
-    newState[row.name] = { rsvp: row.rsvp_status, pay: row.pay_status };
-    if (!GUESTS_BASE.find(g => g.name === row.name)) extraNames.push(row.name);
-  });
-  extraNames.forEach(name => {
-    if (!GUESTS.find(g => g.name === name)) {
-      let insertAt = GUESTS.length;
-      for (let i = 1; i < GUESTS.length; i++) {
-        if (name.localeCompare(GUESTS[i].name) < 0) { insertAt = i; break; }
-      }
-      GUESTS.splice(insertAt, 0, { name });
+  try {
+    const { data, error } = await supabase.from('rsvp').select('*');
+    if (error) {
+      console.error('Supabase error:', error);
+      showError(`DB error: ${error.message}`);
+      showLoader(false);
+      seedDefaults();
+      return;
     }
-  });
-  GUESTS.forEach(g => {
-    if (!newState[g.name]) newState[g.name] = { rsvp: g.you ? 'confirmed' : 'not_contacted', pay: 'not_requested' };
-  });
-  state = newState;
-  buildTable();
+    if (!data || data.length === 0) {
+      console.warn('No rows returned — seeding defaults');
+      await seedSupabase();
+      showLoader(false);
+      return;
+    }
+    console.log('Loaded rows:', data.length);
+    const newState = {};
+    const extraNames = [];
+    data.forEach(row => {
+      newState[row.name] = { rsvp: row.rsvp_status, pay: row.pay_status };
+      if (!GUESTS_BASE.find(g => g.name === row.name)) extraNames.push(row.name);
+    });
+    extraNames.forEach(name => {
+      if (!GUESTS.find(g => g.name === name)) {
+        let insertAt = GUESTS.length;
+        for (let i = 1; i < GUESTS.length; i++) {
+          if (name.localeCompare(GUESTS[i].name) < 0) { insertAt = i; break; }
+        }
+        GUESTS.splice(insertAt, 0, { name });
+      }
+    });
+    GUESTS.forEach(g => {
+      if (!newState[g.name]) newState[g.name] = { rsvp: g.you ? 'confirmed' : 'not_contacted', pay: 'not_requested' };
+    });
+    state = newState;
+    buildTable();
+  } catch(e) {
+    console.error('Load failed:', e);
+    showError(`Could not reach Supabase: ${e.message}`);
+    seedDefaults();
+  }
   showLoader(false);
+}
+
+async function seedSupabase() {
+  const rows = GUESTS_BASE.map(g => ({
+    name: g.name,
+    rsvp_status: g.you ? 'confirmed' : 'not_contacted',
+    pay_status: 'not_requested'
+  }));
+  const { error } = await supabase.from('rsvp').upsert(rows, { onConflict: 'name' });
+  if (error) { console.error('Seed error:', error); seedDefaults(); return; }
+  await loadFromSupabase();
+}
+
+function seedDefaults() {
+  GUESTS.forEach(g => {
+    state[g.name] = { rsvp: g.you ? 'confirmed' : 'not_contacted', pay: 'not_requested' };
+  });
+  buildTable();
+  showError('Running offline — changes will not sync until Supabase is reachable.');
+}
+
+function showError(msg) {
+  let el = document.getElementById('db-error');
+  if (!el) {
+    el = document.createElement('div');
+    el.id = 'db-error';
+    el.style.cssText = 'background:#fef2f2;border:1px solid #fca5a5;color:#dc2626;padding:10px 16px;border-radius:8px;font-size:13px;margin-bottom:16px;font-weight:500;';
+    const section = document.querySelector('.section');
+    if (section) section.insertAdjacentElement('beforebegin', el);
+  }
+  el.textContent = '⚠ ' + msg;
+  el.style.display = 'block';
 }
 
 async function saveToSupabase(name, rsvp, pay) {
