@@ -391,7 +391,8 @@
       </div>
       <div style="text-align:right; padding-top:4px;">
         <div class="badge badge-dim" style="margin-bottom:8px;">🔒 Private — Not shared</div><br>
-        <div class="badge badge-gold">⚽ Round of 16 · 4 July</div>
+        <div class="badge badge-gold">⚽ Round of 16 · 4 July</div><br><br>
+        <span id="conn-badge" onclick="openConfig()" style="cursor:pointer; display:inline-flex; align-items:center; gap:6px; padding:6px 14px; border-radius:100px; font-size:12px; font-weight:600; border:1px solid #dc2626; background:rgba(220,38,38,0.08); color:#dc2626;">🔴 Not Connected</span>
       </div>
     </div>
     <div class="hero-meta">
@@ -494,6 +495,7 @@
         <button class="btn btn-outline" onclick="resetAll()">↺ Reset</button>
       </div>
     </div>
+    <div id="table-loader" style="display:none; text-align:center; padding:20px; font-size:13px; color:#64748b;">Syncing with Supabase...</div>
     <div class="table-wrap">
       <table id="rsvp-table">
         <thead>
@@ -656,6 +658,27 @@
 
 <div id="toast"></div>
 
+<!-- SUPABASE CONFIG MODAL -->
+<div id="config-overlay" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:1000; align-items:center; justify-content:center;">
+  <div style="background:#fff; border-radius:16px; padding:32px; max-width:480px; width:90%; box-shadow:0 20px 60px rgba(0,0,0,0.3);">
+    <div style="font-family:'Playfair Display',serif; font-size:22px; font-weight:700; color:#1e293b; margin-bottom:6px;">Supabase Setup</div>
+    <div style="font-size:13px; color:#64748b; margin-bottom:24px;">Enter your Supabase project credentials to enable cross-device sync.</div>
+    <div style="margin-bottom:14px;">
+      <label style="font-size:12px; font-weight:600; color:#475569; text-transform:uppercase; letter-spacing:0.5px; display:block; margin-bottom:6px;">Project URL</label>
+      <input id="cfg-url" type="text" placeholder="https://xxxx.supabase.co" style="width:100%; padding:10px 14px; border:1px solid #cbd5e1; border-radius:8px; font-size:14px; font-family:'DM Sans',sans-serif; color:#1e293b; outline:none;">
+    </div>
+    <div style="margin-bottom:24px;">
+      <label style="font-size:12px; font-weight:600; color:#475569; text-transform:uppercase; letter-spacing:0.5px; display:block; margin-bottom:6px;">Anon Public Key</label>
+      <input id="cfg-key" type="text" placeholder="eyJhbGciOiJIUzI1NiIs..." style="width:100%; padding:10px 14px; border:1px solid #cbd5e1; border-radius:8px; font-size:14px; font-family:'DM Sans',sans-serif; color:#1e293b; outline:none;">
+    </div>
+    <div style="display:flex; gap:10px;">
+      <button onclick="saveConfig()" style="flex:1; background:#b45309; color:#fff; border:none; border-radius:8px; padding:11px; font-size:14px; font-weight:600; font-family:'DM Sans',sans-serif; cursor:pointer;">Connect</button>
+      <button onclick="closeConfig()" style="background:transparent; border:1px solid #cbd5e1; color:#475569; border-radius:8px; padding:11px 18px; font-size:14px; font-weight:600; font-family:'DM Sans',sans-serif; cursor:pointer;">Cancel</button>
+    </div>
+    <div id="cfg-status" style="margin-top:12px; font-size:13px; color:#dc2626; display:none;"></div>
+  </div>
+</div>
+
 <script>
 const GUESTS_BASE = [
   { name: 'Khaled Alnuaimi', you: true },
@@ -686,12 +709,152 @@ const RSVP_OPTIONS = ['not_contacted','contacted','not_sleeping','confirmed','ma
 const RSVP_LABELS = { not_contacted: 'Not Contacted', contacted: 'Contacted', not_sleeping: 'Not Sleeping', confirmed: 'Confirmed', maybe: 'Maybe', declined: 'Declined', available: 'Available' };
 const PAY_OPTIONS = ['not_requested','pending','paid'];
 const PAY_LABELS = { not_requested: 'Not Requested', pending: 'Pending', paid: 'Paid' };
-
 const CAPACITY = 12;
 
 let state = {};
+let SUPA_URL = '';
+let SUPA_KEY = '';
+let realtimeChannel = null;
 
-function loadState() {
+// ── SUPABASE CONFIG ──────────────────────────────────────────
+function loadConfig() {
+  SUPA_URL = localStorage.getItem('supa_url') || '';
+  SUPA_KEY = localStorage.getItem('supa_key') || '';
+  updateConnectionBadge();
+}
+
+function saveConfig() {
+  const url = document.getElementById('cfg-url').value.trim().replace(/\/$/, '');
+  const key = document.getElementById('cfg-key').value.trim();
+  if (!url || !key) { showCfgStatus('Please enter both URL and key.', '#dc2626'); return; }
+  SUPA_URL = url;
+  SUPA_KEY = key;
+  localStorage.setItem('supa_url', url);
+  localStorage.setItem('supa_key', key);
+  closeConfig();
+  updateConnectionBadge();
+  init();
+}
+
+function closeConfig() {
+  document.getElementById('config-overlay').style.display = 'none';
+}
+
+function openConfig() {
+  document.getElementById('cfg-url').value = SUPA_URL;
+  document.getElementById('cfg-key').value = SUPA_KEY;
+  document.getElementById('cfg-status').style.display = 'none';
+  document.getElementById('config-overlay').style.display = 'flex';
+}
+
+function showCfgStatus(msg, color) {
+  const el = document.getElementById('cfg-status');
+  el.textContent = msg; el.style.color = color; el.style.display = 'block';
+}
+
+function updateConnectionBadge() {
+  const badge = document.getElementById('conn-badge');
+  if (!badge) return;
+  if (SUPA_URL && SUPA_KEY) {
+    badge.textContent = '🟢 Supabase Connected';
+    badge.style.background = 'rgba(22,163,74,0.1)';
+    badge.style.borderColor = '#16a34a';
+    badge.style.color = '#15803d';
+  } else {
+    badge.textContent = '🔴 Not Connected';
+    badge.style.background = 'rgba(220,38,38,0.08)';
+    badge.style.borderColor = '#dc2626';
+    badge.style.color = '#dc2626';
+  }
+}
+
+// ── SUPABASE REST API ────────────────────────────────────────
+async function supaFetch(path, method = 'GET', body = null) {
+  const opts = {
+    method,
+    headers: {
+      'apikey': SUPA_KEY,
+      'Authorization': `Bearer ${SUPA_KEY}`,
+      'Content-Type': 'application/json',
+      'Prefer': method === 'POST' ? 'resolution=merge-duplicates' : ''
+    }
+  };
+  if (body) opts.body = JSON.stringify(body);
+  const res = await fetch(`${SUPA_URL}/rest/v1/${path}`, opts);
+  if (!res.ok) {
+    const err = await res.text();
+    throw new Error(err);
+  }
+  const text = await res.text();
+  return text ? JSON.parse(text) : [];
+}
+
+async function loadFromSupabase() {
+  showLoader(true);
+  try {
+    const rows = await supaFetch('rsvp?select=*');
+    const newState = {};
+    const extraNames = [];
+    rows.forEach(row => {
+      newState[row.name] = { rsvp: row.rsvp_status, pay: row.pay_status };
+      if (!GUESTS_BASE.find(g => g.name === row.name)) extraNames.push(row.name);
+    });
+    // Re-add extra guests alphabetically
+    extraNames.forEach(name => {
+      if (!GUESTS.find(g => g.name === name)) {
+        let insertAt = GUESTS.length;
+        for (let i = 1; i < GUESTS.length; i++) {
+          if (name.localeCompare(GUESTS[i].name) < 0) { insertAt = i; break; }
+        }
+        GUESTS.splice(insertAt, 0, { name });
+      }
+    });
+    // Fill in missing base guests with defaults
+    GUESTS.forEach(g => {
+      if (!newState[g.name]) newState[g.name] = { rsvp: g.you ? 'confirmed' : 'not_contacted', pay: 'not_requested' };
+    });
+    state = newState;
+    buildTable();
+    toast('Synced from Supabase');
+  } catch(e) {
+    toast('Supabase error — check config');
+    fallbackToLocal();
+  }
+  showLoader(false);
+}
+
+async function saveToSupabase(name, rsvp, pay) {
+  if (!SUPA_URL || !SUPA_KEY) return;
+  try {
+    await supaFetch('rsvp', 'POST', [{ name, rsvp_status: rsvp, pay_status: pay }]);
+  } catch(e) {
+    console.error('Supabase save failed:', e);
+  }
+}
+
+function subscribeRealtime() {
+  if (!SUPA_URL || !SUPA_KEY || realtimeChannel) return;
+  // Supabase realtime via WebSocket
+  const wsUrl = SUPA_URL.replace('https://', 'wss://').replace('http://', 'ws://') + '/realtime/v1/websocket?apikey=' + SUPA_KEY + '&vsn=1.0.0';
+  try {
+    const ws = new WebSocket(wsUrl);
+    ws.onopen = () => {
+      ws.send(JSON.stringify({ topic: 'realtime:public:rsvp', event: 'phx_join', payload: {}, ref: '1' }));
+    };
+    ws.onmessage = (msg) => {
+      try {
+        const data = JSON.parse(msg.data);
+        if (data.event === 'postgres_changes' || (data.payload && data.payload.data)) {
+          loadFromSupabase();
+        }
+      } catch(e) {}
+    };
+    realtimeChannel = ws;
+  } catch(e) {}
+}
+
+// ── LOCAL FALLBACK ───────────────────────────────────────────
+function fallbackToLocal() {
   try {
     const s = localStorage.getItem('palmVillaState');
     if (s) {
@@ -707,44 +870,35 @@ function loadState() {
           }
         });
       }
-      return parsed;
+      state = parsed;
+    } else {
+      GUESTS.forEach(g => { state[g.name] = { rsvp: g.you ? 'confirmed' : 'not_contacted', pay: 'not_requested' }; });
     }
-  } catch(e) {}
-  const d = {};
-  GUESTS.forEach(g => {
-    d[g.name] = { rsvp: g.you ? 'confirmed' : 'not_contacted', pay: 'not_requested' };
-  });
-  return d;
+  } catch(e) {
+    GUESTS.forEach(g => { state[g.name] = { rsvp: g.you ? 'confirmed' : 'not_contacted', pay: 'not_requested' }; });
+  }
+  buildTable();
 }
 
-function saveState() {
+function saveLocal() {
   const extra = GUESTS.filter(g => !GUESTS_BASE.find(b => b.name === g.name)).map(g => g.name);
   state.__extra = extra;
   try { localStorage.setItem('palmVillaState', JSON.stringify(state)); } catch(e) {}
 }
 
-function addGuest() {
-  const input = document.getElementById('new-guest-input');
-  const name = input.value.trim();
-  if (!name) return;
-  if (GUESTS.find(g => g.name === name)) { toast('Already in list'); return; }
-
-  let insertAt = GUESTS.length;
-  for (let i = 1; i < GUESTS.length; i++) {
-    if (name.localeCompare(GUESTS[i].name) < 0) { insertAt = i; break; }
+// ── CORE SAVE ────────────────────────────────────────────────
+async function saveState(name) {
+  saveLocal();
+  if (SUPA_URL && SUPA_KEY && name) {
+    const s = state[name];
+    if (s) await saveToSupabase(name, s.rsvp, s.pay);
   }
-  GUESTS.splice(insertAt, 0, { name });
-  state[name] = { rsvp: 'not_contacted', pay: 'not_requested' };
-
-  saveState();
-  buildTable();
-  input.value = '';
-  input.focus();
-  toast(`${name} added`);
 }
 
-function fmt(n) {
-  return 'AED ' + n.toLocaleString('en-AE', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+// ── UI ───────────────────────────────────────────────────────
+function showLoader(on) {
+  const el = document.getElementById('table-loader');
+  if (el) el.style.display = on ? 'block' : 'none';
 }
 
 function buildTable() {
@@ -776,26 +930,43 @@ function buildTable() {
   recalculate();
 }
 
-function updateRsvp(name, val, el) {
+async function updateRsvp(name, val, el) {
   if (!state[name]) state[name] = { rsvp: 'not_contacted', pay: 'not_requested' };
   state[name].rsvp = val;
   el.className = `rsvp-select status-${val}`;
-  saveState(); recalculate();
+  await saveState(name); recalculate();
 }
 
-function updatePay(name, val, el) {
+async function updatePay(name, val, el) {
   if (!state[name]) state[name] = { rsvp: 'not_contacted', pay: 'not_requested' };
   state[name].pay = val;
   el.className = `pay-select pay-${val}`;
-  saveState(); recalculate();
+  await saveState(name); recalculate();
+}
+
+async function addGuest() {
+  const input = document.getElementById('new-guest-input');
+  const name = input.value.trim();
+  if (!name) return;
+  if (GUESTS.find(g => g.name === name)) { toast('Already in list'); return; }
+  let insertAt = GUESTS.length;
+  for (let i = 1; i < GUESTS.length; i++) {
+    if (name.localeCompare(GUESTS[i].name) < 0) { insertAt = i; break; }
+  }
+  GUESTS.splice(insertAt, 0, { name });
+  state[name] = { rsvp: 'not_contacted', pay: 'not_requested' };
+  await saveState(name);
+  buildTable();
+  input.value = '';
+  input.focus();
+  toast(`${name} added`);
 }
 
 function recalculate() {
   const total = parseFloat(document.getElementById('total-cost').value) || 9646;
   document.getElementById('hero-price').textContent = fmt(total).replace('AED ', 'AED ');
-
   let confirmed = 0, available = 0, not_sleeping = 0, declined = 0, maybe = 0, contacted = 0, not_contacted = 0, paidCount = 0;
-  GUESTS.forEach((g) => {
+  GUESTS.forEach(g => {
     const s = state[g.name] || { rsvp: 'not_contacted', pay: 'not_requested' };
     if (s.rsvp === 'confirmed') confirmed++;
     else if (s.rsvp === 'available') available++;
@@ -811,8 +982,6 @@ function recalculate() {
   const spots = Math.max(0, CAPACITY - likely);
   const collected = paidCount * cpp;
   const balance = total - collected;
-
-  // Update amounts
   GUESTS.forEach((g, i) => {
     const s = state[g.name] || {};
     const el = document.getElementById(`amt-${i}`);
@@ -820,8 +989,6 @@ function recalculate() {
     const joining = s.rsvp === 'confirmed' || s.rsvp === 'available';
     el.textContent = (joining && likely > 0) ? fmt(cpp) : '—';
   });
-
-  // Summary cards
   document.getElementById('s-confirmed').textContent = confirmed;
   document.getElementById('s-available').textContent = available;
   document.getElementById('s-likely').textContent = likely;
@@ -832,35 +999,22 @@ function recalculate() {
   document.getElementById('s-not_contacted').textContent = not_contacted;
   document.getElementById('s-cpp').textContent = likely > 0 ? fmt(cpp) : '—';
   document.getElementById('s-spots').textContent = spots;
-
-  // Progress
   const pct = Math.min(100, (likely / CAPACITY) * 100);
   document.getElementById('prog-fill').style.width = pct + '%';
   document.getElementById('prog-label').textContent = `${likely} / ${CAPACITY}`;
-
-  // Decision
   const db = document.getElementById('decision-banner');
   const dt = document.getElementById('decision-text');
   const di = document.getElementById('decision-icon');
   db.className = 'decision-banner';
-  if (likely < 6) {
-    db.classList.add('early'); di.textContent = '⏳'; dt.textContent = 'Too early to book — collect more RSVPs first';
-  } else if (likely <= 7) {
-    db.classList.add('possible'); di.textContent = '🟡'; dt.textContent = 'Possible, but expensive per person';
-  } else if (likely <= 9) {
-    db.classList.add('good'); di.textContent = '✅'; dt.textContent = 'Good enough to consider booking';
-  } else {
-    db.classList.add('ideal'); di.textContent = '🎉'; dt.textContent = 'Strong group size — ideal to book!';
-  }
-
-  // Calculator card
+  if (likely < 6) { db.classList.add('early'); di.textContent = '⏳'; dt.textContent = 'Too early to book — collect more RSVPs first'; }
+  else if (likely <= 7) { db.classList.add('possible'); di.textContent = '🟡'; dt.textContent = 'Possible, but expensive per person'; }
+  else if (likely <= 9) { db.classList.add('good'); di.textContent = '✅'; dt.textContent = 'Good enough to consider booking'; }
+  else { db.classList.add('ideal'); di.textContent = '🎉'; dt.textContent = 'Strong group size — ideal to book!'; }
   document.getElementById('c-likely').textContent = likely;
   document.getElementById('c-cpp').textContent = likely > 0 ? fmt(cpp) : '—';
   document.getElementById('c-spots').textContent = spots;
   document.getElementById('c-collected').textContent = fmt(collected);
   document.getElementById('c-balance').textContent = fmt(balance);
-
-  // Scenarios
   buildScenarios(total, likely);
 }
 
@@ -876,10 +1030,14 @@ function buildScenarios(total, currentLikely) {
     tr.innerHTML = `
       <td>${n} people${isCurrent ? '<span class="current-tag">Now</span>' : ''}</td>
       <td>${fmt(cpp)}</td>
-      <td style="font-size:11px;color:var(--white-dim);">${n===8?'Listed guest count':n===10?'Comfortable split':n===12?'Max capacity':''}</td>
+      <td style="font-size:11px;color:#64748b;">${n===8?'Listed guest count':n===10?'Comfortable split':n===12?'Max capacity':''}</td>
     `;
     tbody.appendChild(tr);
   }
+}
+
+function fmt(n) {
+  return 'AED ' + n.toLocaleString('en-AE', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 }
 
 function exportData() {
@@ -895,10 +1053,9 @@ function importData(event) {
   const file = event.target.files[0];
   if (!file) return;
   const reader = new FileReader();
-  reader.onload = e => {
+  reader.onload = async e => {
     try {
       const parsed = JSON.parse(e.target.result);
-      // Restore extra guests first
       if (parsed.__extra) {
         parsed.__extra.forEach(name => {
           if (!GUESTS.find(g => g.name === name)) {
@@ -911,21 +1068,27 @@ function importData(event) {
         });
       }
       state = parsed;
-      saveState();
+      saveLocal();
+      if (SUPA_URL && SUPA_KEY) {
+        const rows = GUESTS.map(g => ({ name: g.name, rsvp_status: state[g.name]?.rsvp || 'not_contacted', pay_status: state[g.name]?.pay || 'not_requested' }));
+        await supaFetch('rsvp', 'POST', rows);
+      }
       buildTable();
-      toast('Imported successfully!');
+      toast('Imported!');
     } catch(err) { toast('Invalid file'); }
   };
   reader.readAsText(file);
   event.target.value = '';
 }
 
-function resetAll() {
+async function resetAll() {
   if (!confirm('Reset all RSVP and payment statuses?')) return;
-  GUESTS.forEach(g => {
-    state[g.name] = { rsvp: g.you ? 'confirmed' : 'not_contacted', pay: 'not_requested' };
-  });
-  saveState();
+  GUESTS.forEach(g => { state[g.name] = { rsvp: g.you ? 'confirmed' : 'not_contacted', pay: 'not_requested' }; });
+  saveLocal();
+  if (SUPA_URL && SUPA_KEY) {
+    const rows = GUESTS.map(g => ({ name: g.name, rsvp_status: state[g.name].rsvp, pay_status: state[g.name].pay }));
+    await supaFetch('rsvp', 'POST', rows);
+  }
   buildTable();
   toast('All statuses reset');
 }
@@ -936,9 +1099,17 @@ function toast(msg) {
   setTimeout(() => el.classList.remove('show'), 2000);
 }
 
-// Init
-state = loadState();
-buildTable();
+async function init() {
+  loadConfig();
+  if (SUPA_URL && SUPA_KEY) {
+    await loadFromSupabase();
+    subscribeRealtime();
+  } else {
+    fallbackToLocal();
+  }
+}
+
+init();
 </script>
 </body>
 </html>
