@@ -489,7 +489,7 @@ select.p-not_requested{ background-color: #f8f9fa; border-color: #e2e8f0; color:
         <div class="stat-card slate">  <div class="stat-num" id="f-total-items">—</div>  <div class="stat-label">Total Items</div></div>
         <div class="stat-card green">  <div class="stat-num" id="f-purchased-count">—</div><div class="stat-label">Purchased</div></div>
         <div class="stat-card amber">  <div class="stat-num" id="f-remaining-count">—</div><div class="stat-label">Still To Buy</div></div>
-        <div class="stat-card blue">   <div class="stat-num" id="f-planned-stat" style="font-size:16px;">—</div><div class="stat-label">Planned Cost</div></div>
+        <div class="stat-card blue">   <div class="stat-num" id="f-planned-stat" style="font-size:16px;">—</div><div class="stat-label">Total Cost</div></div>
         <div class="stat-card teal">   <div class="stat-num" id="f-spent-stat" style="font-size:16px;">—</div><div class="stat-label">Total Spent</div></div>
         <div class="stat-card gold">   <div class="stat-num" id="f-pp-stat" style="font-size:16px;">—</div><div class="stat-label">Cost / Person</div></div>
       </div>
@@ -544,23 +544,19 @@ select.p-not_requested{ background-color: #f8f9fa; border-color: #e2e8f0; color:
       </div>
     </div>
 
-    <!-- BUDGET & SPLIT -->
+    <!-- COST & SPLIT -->
     <div class="section">
-      <div class="section-title">Budget & Cost Split</div>
+      <div class="section-title">Cost & Split</div>
       <div class="calc-grid">
         <div class="calc-panel">
-          <h3>Budget & Split</h3>
-          <div class="cost-input-wrap">
-            <label>Total budget (AED)</label>
-            <input type="number" class="cost-input" id="food-budget" oninput="onFoodBudgetChange()">
-          </div>
+          <h3>Cost & Split</h3>
           <div class="cost-input-wrap">
             <label>People sharing cost</label>
             <input type="number" class="cost-input" id="food-people" value="17" oninput="onFoodPeopleChange()">
           </div>
-          <div class="calc-row"><span class="calc-row-label">Planned cost (catalog)</span> <span class="calc-row-value" id="f-planned">—</span></div>
+          <div class="calc-row"><span class="calc-row-label">Total cost (all items)</span> <span class="calc-row-value" id="f-planned">—</span></div>
           <div class="calc-row"><span class="calc-row-label">Total spent (purchased)</span><span class="calc-row-value green" id="f-spent">—</span></div>
-          <div class="calc-row"><span class="calc-row-label">Remaining budget</span>       <span class="calc-row-value" id="f-remaining">—</span></div>
+          <div class="calc-row"><span class="calc-row-label">Remaining to spend</span>       <span class="calc-row-value" id="f-remaining">—</span></div>
           <div class="calc-row"><span class="calc-row-label">Share per person</span>       <span class="calc-row-value highlight" id="f-pp">—</span></div>
         </div>
         <div class="calc-panel">
@@ -1027,9 +1023,9 @@ const BASE_FOOD_ITEMS = [
 ];
 
 // foodItems    = working shopping-list rows (mirrors `guests` above — id, category, name, qty, price, purchased)
-// foodPayments = budget/cost-split settings, kept per-browser in localStorage (mirrors the cost calculator's total-cost input)
+// foodPayments = cost-split settings (just the people count — total cost is always derived live from foodItems)
 let foodItems = [];
-let foodPayments = { budget: null, people: FOOD_PEOPLE_DEFAULT };
+let foodPayments = { people: FOOD_PEOPLE_DEFAULT };
 let foodLocalIdSeq = -1; // negative ids = added locally, not yet (or never) saved to Supabase
 
 // Display-only sort order for the Shopping List — never reorders `foodItems`
@@ -1080,10 +1076,8 @@ function mapFoodRow(r) {
 
 // ── INIT ──────────────────────────────────────────────────────
 async function initFoodTab() {
-  const savedBudget = localStorage.getItem('pv_food_budget');
   const savedPeople = localStorage.getItem('pv_food_people');
   if (savedPeople) foodPayments.people = Number(savedPeople) || FOOD_PEOPLE_DEFAULT;
-  if (savedBudget) foodPayments.budget = Number(savedBudget);
 
   if (db) {
     try {
@@ -1111,9 +1105,6 @@ async function initFoodTab() {
     foodItems = BASE_FOOD_ITEMS.map(it => ({ id: foodLocalIdSeq--, category: it.category, name: it.name, qty: it.qty, price: it.price, purchased: false }));
   }
 
-  if (foodPayments.budget == null) {
-    foodPayments.budget = Math.round(foodItems.reduce((sum, it) => sum + it.qty * it.price, 0));
-  }
   renderFoodTab();
 }
 
@@ -1265,12 +1256,7 @@ async function importFoodJSON(e) {
   e.target.value = '';
 }
 
-// ── BUDGET / PEOPLE INPUTS ────────────────────────────────────
-function onFoodBudgetChange() {
-  foodPayments.budget = parseFloat(document.getElementById('food-budget').value) || 0;
-  localStorage.setItem('pv_food_budget', foodPayments.budget);
-  recalcFood();
-}
+// ── PEOPLE INPUT ──────────────────────────────────────────────
 function onFoodPeopleChange() {
   foodPayments.people = parseFloat(document.getElementById('food-people').value) || FOOD_PEOPLE_DEFAULT;
   localStorage.setItem('pv_food_people', foodPayments.people);
@@ -1296,15 +1282,13 @@ function recalcFood() {
 
   const remainingCount = foodItems.length - purchasedCount;
 
-  // Don't stomp on the budget/people inputs while the user is actively typing in them
-  const budgetEl = document.getElementById('food-budget');
-  if (budgetEl && document.activeElement !== budgetEl) budgetEl.value = foodPayments.budget ?? '';
+  // Don't stomp on the people input while the user is actively typing in it
   const peopleEl = document.getElementById('food-people');
   if (peopleEl && document.activeElement !== peopleEl) peopleEl.value = foodPayments.people;
 
-  const budget = foodPayments.budget ?? planned;
-  const remaining = budget - spent;
-  const pp = foodPayments.people > 0 ? budget / foodPayments.people : 0;
+  // Total cost is always the live sum of all items — split across the people count, no separate budget figure
+  const remaining = planned - spent;
+  const pp = foodPayments.people > 0 ? planned / foodPayments.people : 0;
 
   const s = (id, val) => { const el = document.getElementById(id); if (el) el.textContent = val; };
   s('f-total-items', foodItems.length);
@@ -1332,7 +1316,7 @@ function recalcFood() {
     }).join('');
   }
 
-  // Budget/people here also drive the Payments-by-Name ledger's collected/outstanding figures
+  // People count here also drives the Payments-by-Name ledger's collected/outstanding figures
   recalcFoodPayments();
 }
 
@@ -1360,8 +1344,9 @@ function subscribeFoodRealtime() {
 // as the Accommodation tab (no duplicate name list) and the same
 // PAY_OPTS/PAY_LBL + select.p-* styling as the RSVP table's Payment
 // column. Amount collected is derived from status × per-person share
-// (foodPayments.budget / .people) — there's no separate amount field,
-// exactly like the Accommodation tab's pay tracking already works.
+// (total cost of all food items / foodPayments.people) — there's no
+// separate amount field, exactly like the Accommodation tab's pay
+// tracking already works.
 // ════════════════════════════════════════════════════════════════
 
 // foodPaymentRows = object keyed by guest name → { status, notes } (mirrors `rows` for RSVP)
@@ -1472,9 +1457,11 @@ function recalcFoodPayments() {
     else noneCount++;
   });
 
-  const pp = foodPayments.people > 0 ? (foodPayments.budget || 0) / foodPayments.people : 0;
+  // Total cost is always the live sum of all food items — same figure the Cost & Split panel shows
+  const totalCost = foodItems.reduce((sum, it) => sum + (Number(it.qty) || 0) * (Number(it.price) || 0), 0);
+  const pp = foodPayments.people > 0 ? totalCost / foodPayments.people : 0;
   const collected = paidCount * pp;
-  const outstanding = (foodPayments.budget || 0) - collected;
+  const outstanding = totalCost - collected;
 
   const s = (id, val) => { const el = document.getElementById(id); if (el) el.textContent = val; };
   s('fp-people-note', foodPayments.people);
