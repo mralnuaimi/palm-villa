@@ -52,6 +52,19 @@ body {
 .conn-dot.ok { background: #22c55e; }
 .conn-dot.err { background: #ef4444; }
 
+/* ── TABS ── */
+.tabs { display: flex; gap: 6px; margin-bottom: 20px; border-bottom: 1px solid #e2e8f0; }
+.tab-btn {
+  flex: 1; text-align: center; padding: 10px 12px; border: none; background: transparent;
+  font-size: 13px; font-weight: 600; color: #64748b; cursor: pointer;
+  border-bottom: 2px solid transparent; font-family: inherit;
+  transition: color 0.15s, border-color 0.15s;
+}
+.tab-btn.active { color: #1a1a2e; border-bottom-color: #c9a84c; }
+.tab-btn:hover { color: #1a1a2e; }
+.tab-panel { display: none; }
+.tab-panel.active { display: block; }
+
 /* ── MAIN LAYOUT ── */
 .main { max-width: 960px; margin: 0 auto; padding: 24px; }
 .section { margin-bottom: 32px; }
@@ -229,6 +242,73 @@ select.p-not_requested{ background-color: #f8f9fa; border-color: #e2e8f0; color:
 /* ── TOOLBAR ── */
 .toolbar { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 14px; }
 
+/* ── FOOD & SUPPLIES ── */
+.cat-badge {
+  display: inline-block; font-size: 10px; font-weight: 700;
+  border-radius: 5px; padding: 2px 7px; border: 1px solid #e2e8f0;
+  white-space: nowrap; text-transform: uppercase; letter-spacing: 0.3px;
+  background: #f8f9fa; color: #64748b;
+}
+.cat-badge.cat-restaurant-order   { background:#fffbeb; border-color:#fde68a; color:#92400e; }
+.cat-badge.cat-drinks             { background:#eff6ff; border-color:#93c5fd; color:#1d4ed8; }
+.cat-badge.cat-snacks             { background:#fff7ed; border-color:#fdba74; color:#c2410c; }
+.cat-badge.cat-desserts-ice-cream { background:#f5f3ff; border-color:#c4b5fd; color:#6d28d9; }
+.cat-badge.cat-villa-essentials   { background:#f0fdfa; border-color:#5eead4; color:#0f766e; }
+.cat-badge.cat-pool-comfort       { background:#f8f9fa; border-color:#cbd5e1; color:#475569; }
+
+.f-input {
+  width: 100%; border: 1px solid #e2e8f0; border-radius: 6px;
+  padding: 5px 7px; font-size: 12px; font-family: inherit;
+  color: #1a1a2e; outline: none; background: #fff;
+}
+.f-input:focus { border-color: #c9a84c; }
+.f-input.f-num { text-align: right; }
+.f-name-input { font-weight: 600; min-width: 140px; margin-top: 4px; }
+
+.purchase-toggle {
+  display: inline-flex; align-items: center; gap: 5px;
+  border: 1px solid; border-radius: 7px; padding: 5px 10px;
+  font-size: 12px; font-weight: 600; cursor: pointer;
+  font-family: inherit; white-space: nowrap; background: #fff;
+  transition: opacity 0.15s;
+}
+.purchase-toggle:hover { opacity: 0.8; }
+.purchase-toggle.pending { background:#fff7ed; border-color:#fdba74; color:#c2410c; }
+.purchase-toggle.bought  { background:#f0fdf4; border-color:#86efac; color:#15803d; }
+
+.food-table tbody tr.bought { background: #f9fefb; opacity: 0.7; }
+.food-table .row-del {
+  background: transparent; border: none; color: #cbd5e1;
+  font-size: 14px; cursor: pointer; padding: 2px 6px; line-height: 1;
+}
+.food-table .row-del:hover { color: #ef4444; }
+
+.add-row.add-row-food { flex-wrap: wrap; }
+.add-row.add-row-food input, .add-row.add-row-food select { flex: 1; min-width: 90px; }
+
+/* Stack the food table into cards below 700px instead of horizontal scroll */
+@media (max-width: 700px) {
+  .food-table thead { display: none; }
+  .food-table, .food-table tbody, .food-table tr, .food-table td { display: block; width: 100%; }
+  .food-table tr {
+    border: 1px solid #e2e8f0; border-radius: 10px;
+    margin-bottom: 10px; padding: 8px 10px; background: #fff;
+  }
+  .food-table tbody tr.bought { background: #f9fefb; }
+  .food-table td {
+    display: flex; align-items: center; justify-content: space-between;
+    gap: 10px; border-bottom: none !important; padding: 6px 2px;
+  }
+  .food-table td::before {
+    content: attr(data-label); font-size: 11px; font-weight: 700;
+    color: #94a3b8; text-transform: uppercase; letter-spacing: 0.5px;
+    flex-shrink: 0;
+  }
+  .food-table td.row-num { display: none; }
+  .food-table td.f-cell-name { justify-content: flex-start; flex-wrap: wrap; }
+  .food-table td.f-cell-name::before { display: none; }
+}
+
 /* ── LOADING ── */
 .loader { text-align: center; padding: 48px; color: #94a3b8; font-size: 14px; }
 
@@ -271,6 +351,14 @@ select.p-not_requested{ background-color: #f8f9fa; border-color: #e2e8f0; color:
 </div>
 
 <div class="main">
+
+  <!-- TABS -->
+  <div class="tabs" id="tabs">
+    <button class="tab-btn active" data-tab="accommodation" onclick="switchTab('accommodation')">🏠 Accommodation</button>
+    <button class="tab-btn" data-tab="food" onclick="switchTab('food')">🍽️ Food & Supplies</button>
+  </div>
+
+  <div class="tab-panel active" id="tab-accommodation">
 
   <!-- STATS -->
   <div class="section">
@@ -373,6 +461,108 @@ select.p-not_requested{ background-color: #f8f9fa; border-color: #e2e8f0; color:
     <p style="font-size:11px; color:#94a3b8; margin-top:10px; font-style:italic;">Fixtures subject to change based on group stage outcomes.</p>
   </div>
 
+  </div>
+  <!-- /tab-accommodation -->
+
+  <!-- ============================================================
+       FOOD & SUPPLIES TAB
+       Tracks restaurant orders, drinks, snacks, desserts, villa
+       essentials and pool/comfort items for the trip — separate
+       from the accommodation/RSVP tracker above. Reuses the same
+       stat-card / calc-panel / select-style components for a
+       consistent look, with its own Supabase table ('food_items')
+       and a local-only fallback if that table isn't set up yet.
+  ============================================================ -->
+  <div class="tab-panel" id="tab-food">
+
+    <!-- FOOD OVERVIEW -->
+    <div class="section">
+      <div class="section-title">Food & Supplies Overview</div>
+      <div id="food-conn-note" style="font-size:11px; color:#94a3b8; margin-bottom:10px;"></div>
+      <div class="stats-grid">
+        <div class="stat-card slate">  <div class="stat-num" id="f-total-items">—</div>  <div class="stat-label">Total Items</div></div>
+        <div class="stat-card green">  <div class="stat-num" id="f-purchased-count">—</div><div class="stat-label">Purchased</div></div>
+        <div class="stat-card amber">  <div class="stat-num" id="f-remaining-count">—</div><div class="stat-label">Still To Buy</div></div>
+        <div class="stat-card blue">   <div class="stat-num" id="f-planned-stat" style="font-size:16px;">—</div><div class="stat-label">Planned Cost</div></div>
+        <div class="stat-card teal">   <div class="stat-num" id="f-spent-stat" style="font-size:16px;">—</div><div class="stat-label">Total Spent</div></div>
+        <div class="stat-card gold">   <div class="stat-num" id="f-pp-stat" style="font-size:16px;">—</div><div class="stat-label">Cost / Person</div></div>
+      </div>
+
+      <div class="progress-wrap" style="margin-top:14px;">
+        <div class="progress-meta">
+          <span>Items purchased</span>
+          <span id="food-prog-label">— / —</span>
+        </div>
+        <div class="progress-track"><div class="progress-fill" id="food-prog-fill" style="width:0%"></div></div>
+      </div>
+    </div>
+
+    <!-- SHOPPING LIST -->
+    <div class="section">
+      <div class="section-title">Shopping List</div>
+      <div class="toolbar">
+        <button class="btn btn-ghost" onclick="resetFoodStatuses()">↺ Reset purchased</button>
+        <button class="btn btn-ghost" onclick="exportFoodJSON()">⬇ Export</button>
+        <label class="btn btn-ghost" style="cursor:pointer;">
+          ⬆ Import
+          <input type="file" accept=".json" onchange="importFoodJSON(event)" style="display:none;">
+        </label>
+      </div>
+      <div class="card">
+        <div id="food-table-wrap">
+          <div class="loader" id="food-loader">Loading from database…</div>
+        </div>
+        <div class="add-row add-row-food">
+          <select id="food-new-cat" class="f-input">
+            <option>Restaurant Order</option>
+            <option>Drinks</option>
+            <option>Snacks</option>
+            <option>Desserts / Ice Cream</option>
+            <option>Villa Essentials</option>
+            <option>Pool / Comfort</option>
+            <option>Other</option>
+          </select>
+          <input type="text" id="food-new-name" placeholder="Item name…" onkeydown="if(event.key==='Enter')addFoodItem()">
+          <input type="number" id="food-new-qty" placeholder="Qty" value="1">
+          <input type="text" id="food-new-unit" placeholder="Unit">
+          <input type="number" id="food-new-price" placeholder="Price/unit">
+          <button class="btn btn-primary" onclick="addFoodItem()">+ Add</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- BUDGET & SPLIT -->
+    <div class="section">
+      <div class="section-title">Budget & Cost Split</div>
+      <div class="calc-grid">
+        <div class="calc-panel">
+          <h3>Budget & Split</h3>
+          <div class="cost-input-wrap">
+            <label>Total budget (AED)</label>
+            <input type="number" class="cost-input" id="food-budget" oninput="onFoodBudgetChange()">
+          </div>
+          <div class="cost-input-wrap">
+            <label>People sharing cost</label>
+            <input type="number" class="cost-input" id="food-people" value="17" oninput="onFoodPeopleChange()">
+          </div>
+          <div class="calc-row"><span class="calc-row-label">Planned cost (catalog)</span> <span class="calc-row-value" id="f-planned">—</span></div>
+          <div class="calc-row"><span class="calc-row-label">Total spent (purchased)</span><span class="calc-row-value green" id="f-spent">—</span></div>
+          <div class="calc-row"><span class="calc-row-label">Remaining budget</span>       <span class="calc-row-value" id="f-remaining">—</span></div>
+          <div class="calc-row"><span class="calc-row-label">Share per person</span>       <span class="calc-row-value highlight" id="f-pp">—</span></div>
+        </div>
+        <div class="calc-panel">
+          <h3>Spend By Category</h3>
+          <table class="scenario-table">
+            <thead><tr><th>Category</th><th>Items</th><th>Planned</th><th>Spent</th></tr></thead>
+            <tbody id="food-cat-breakdown-body"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+  </div>
+  <!-- /tab-food -->
+
 </div>
 
 <div class="toast" id="toast"></div>
@@ -427,10 +617,14 @@ let db     = null;
 
 // ── INIT ──────────────────────────────────────────────────────
 window.addEventListener('load', async () => {
+  // Restore last-active tab (defaults to Accommodation)
+  if (localStorage.getItem('pv_active_tab') === 'food') switchTab('food');
+
   // Wait for Supabase script to be ready
   if (typeof window.supabase === 'undefined') {
     setConn('err', 'Supabase library failed to load. Check your internet connection.');
     renderFallback();
+    await initFoodTab();
     return;
   }
 
@@ -442,6 +636,7 @@ window.addEventListener('load', async () => {
   if (error) {
     setConn('err', 'Database error: ' + error.message);
     renderFallback();
+    await initFoodTab();
     return;
   }
 
@@ -463,6 +658,10 @@ window.addEventListener('load', async () => {
 
   renderTable();
   subscribeRealtime();
+
+  // Food & Supplies tab has its own table — load it independently so a
+  // problem with one tab never blocks the other.
+  await initFoodTab();
 });
 
 // ── FALLBACK (offline) ────────────────────────────────────────
@@ -498,6 +697,13 @@ function showToast(msg) {
   const t = document.getElementById('toast');
   t.textContent = msg; t.classList.add('show');
   setTimeout(() => t.classList.remove('show'), 2200);
+}
+
+// ── TAB SWITCHING ─────────────────────────────────────────────
+function switchTab(name) {
+  document.querySelectorAll('.tab-panel').forEach(p => p.classList.toggle('active', p.id === 'tab-' + name));
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.toggle('active', b.dataset.tab === name));
+  localStorage.setItem('pv_active_tab', name);
 }
 
 // ── RENDER TABLE ──────────────────────────────────────────────
@@ -728,6 +934,360 @@ function subscribeRealtime() {
     .subscribe(status => {
       if (status === 'SUBSCRIBED') setConn('ok', 'Live · changes sync instantly across devices');
     });
+}
+
+// ════════════════════════════════════════════════════════════════
+// FOOD & SUPPLIES TAB
+// Separate from the accommodation/RSVP tracker above. Tracks
+// restaurant orders, drinks, snacks, desserts, villa essentials and
+// pool/comfort items, each with qty/price/purchased status. Synced
+// to its own Supabase table ('food_items') using the same
+// load → render → realtime-subscribe pattern as the RSVP tracker,
+// with a local-only fallback if that table isn't set up yet.
+// ════════════════════════════════════════════════════════════════
+
+const FOOD_CATEGORIES = ['Restaurant Order', 'Drinks', 'Snacks', 'Desserts / Ice Cream', 'Villa Essentials', 'Pool / Comfort'];
+const FOOD_PEOPLE_DEFAULT = 17;
+
+// Preloaded shopping list — seeded into Supabase once on first run (when the table is empty).
+const BASE_FOOD_ITEMS = [
+  { category:'Restaurant Order',     name:'Mashwi / Ouzi - Local Lamb (2 Large Round)',     qty:1,  unit:'order',      price:1650, supplier:'Restaurant menu' },
+  { category:'Restaurant Order',     name:'Rocca Salad (serves 10–15)',                      qty:1,  unit:'tray',       price:325,  supplier:'Restaurant menu' },
+  { category:'Restaurant Order',     name:'Seasonal Sliced Fresh Fruit Platter (30 pcs)',    qty:2,  unit:'platter',    price:110,  supplier:'Restaurant menu' },
+  { category:'Drinks',               name:'Water - small bottle cartons',                    qty:4,  unit:'carton',     price:14,   supplier:'Grocery' },
+  { category:'Drinks',               name:'Soft drinks mixed cans',                          qty:60, unit:'can',        price:2.5,  supplier:'Grocery' },
+  { category:'Drinks',               name:'Coconut water',                                   qty:18, unit:'bottle/can', price:6,    supplier:'Grocery' },
+  { category:'Drinks',               name:'Juice / iced tea',                                qty:18, unit:'bottle/can', price:5,    supplier:'Grocery' },
+  { category:'Drinks',               name:'Ice bags',                                         qty:10, unit:'bag',        price:10,   supplier:'Grocery' },
+  { category:'Snacks',               name:'Large chips bags',                                qty:10, unit:'bag',        price:14,   supplier:'Grocery' },
+  { category:'Snacks',               name:'Mixed nuts / nuts packs',                          qty:3,  unit:'large pack', price:35,   supplier:'Grocery' },
+  { category:'Snacks',               name:'Popcorn',                                          qty:6,  unit:'pack/bag',   price:8,    supplier:'Grocery' },
+  { category:'Snacks',               name:'Crackers / biscuits',                              qty:6,  unit:'pack',       price:10,   supplier:'Grocery' },
+  { category:'Snacks',               name:'Dates',                                            qty:2,  unit:'kg',         price:35,   supplier:'Grocery' },
+  { category:'Desserts / Ice Cream', name:'House of Pops',                                    qty:24, unit:'piece',      price:12,   supplier:'House of Pops' },
+  { category:'Desserts / Ice Cream', name:'Treats Shop dessert tray',                         qty:1,  unit:'large tray', price:250,  supplier:'Treats Shop' },
+  { category:'Villa Essentials',     name:'Disposable plates',                                qty:3,  unit:'pack',       price:15,   supplier:'Grocery' },
+  { category:'Villa Essentials',     name:'Disposable cups',                                  qty:3,  unit:'pack',       price:12,   supplier:'Grocery' },
+  { category:'Villa Essentials',     name:'Disposable cutlery sets',                          qty:3,  unit:'pack',       price:15,   supplier:'Grocery' },
+  { category:'Villa Essentials',     name:'Napkins',                                          qty:4,  unit:'pack',       price:8,    supplier:'Grocery' },
+  { category:'Villa Essentials',     name:'Kitchen roll',                                     qty:6,  unit:'roll',       price:6,    supplier:'Grocery' },
+  { category:'Villa Essentials',     name:'Garbage bags',                                     qty:2,  unit:'roll',       price:12,   supplier:'Grocery' },
+  { category:'Villa Essentials',     name:'Wet wipes',                                        qty:6,  unit:'pack',       price:12,   supplier:'Grocery' },
+  { category:'Villa Essentials',     name:'Tissues',                                          qty:6,  unit:'box',        price:8,    supplier:'Grocery' },
+  { category:'Villa Essentials',     name:'Serving spoons / tongs',                           qty:6,  unit:'piece',      price:8,    supplier:'Grocery' },
+  { category:'Pool / Comfort',       name:'PS5 console',                                      qty:1,  unit:'piece',      price:0,    supplier:'Bring from home' },
+  { category:'Pool / Comfort',       name:'PS5 controllers',                                  qty:4,  unit:'controller', price:0,    supplier:'Bring from home' },
+  { category:'Pool / Comfort',       name:'HDMI cable',                                        qty:1,  unit:'piece',      price:0,    supplier:'Bring from home' },
+];
+
+// foodItems    = working shopping-list rows (mirrors `guests` above — id, category, name, qty, unit, price, purchased, supplier, assignedTo, notes)
+// foodPayments = budget/cost-split settings, kept per-browser in localStorage (mirrors the cost calculator's total-cost input)
+let foodItems = [];
+let foodPayments = { budget: null, people: FOOD_PEOPLE_DEFAULT };
+let foodLocalIdSeq = -1; // negative ids = added locally, not yet (or never) saved to Supabase
+
+function setFoodConn(msg) {
+  const el = document.getElementById('food-conn-note');
+  if (el) el.textContent = msg;
+}
+
+// Free-text fields (name/supplier/assignedTo/notes) are user input rendered via
+// innerHTML, so escape them before embedding in the table markup.
+function escAttr(str) {
+  return String(str ?? '').replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+}
+
+function catSlug(cat) {
+  return String(cat).toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+}
+
+function mapFoodRow(r) {
+  return {
+    id: r.id, category: r.category, name: r.name, qty: Number(r.qty) || 0,
+    unit: r.unit || '', price: Number(r.price) || 0, purchased: !!r.purchased,
+    supplier: r.supplier || '', assignedTo: r.assigned_to || '', notes: r.notes || '',
+  };
+}
+
+// ── INIT ──────────────────────────────────────────────────────
+async function initFoodTab() {
+  const savedBudget = localStorage.getItem('pv_food_budget');
+  const savedPeople = localStorage.getItem('pv_food_people');
+  if (savedPeople) foodPayments.people = Number(savedPeople) || FOOD_PEOPLE_DEFAULT;
+  if (savedBudget) foodPayments.budget = Number(savedBudget);
+
+  if (db) {
+    try {
+      const { data, error } = await db.from('food_items').select('*').order('id');
+      if (error) throw error;
+
+      if (!data || data.length === 0) {
+        const seedRows = BASE_FOOD_ITEMS.map(it => ({
+          category: it.category, name: it.name, qty: it.qty, unit: it.unit,
+          price: it.price, purchased: false, supplier: it.supplier, assigned_to: '', notes: '',
+        }));
+        const { data: inserted, error: insErr } = await db.from('food_items').insert(seedRows).select();
+        if (insErr) throw insErr;
+        foodItems = inserted.map(mapFoodRow);
+      } else {
+        foodItems = data.map(mapFoodRow);
+      }
+      setFoodConn('Live · synced across all devices');
+      subscribeFoodRealtime();
+    } catch (e) {
+      setFoodConn('Local-only — run the food_items setup SQL to enable cross-device sync');
+      foodItems = BASE_FOOD_ITEMS.map(it => ({ id: foodLocalIdSeq--, ...it, purchased: false, assignedTo: '', notes: '' }));
+    }
+  } else {
+    foodItems = BASE_FOOD_ITEMS.map(it => ({ id: foodLocalIdSeq--, ...it, purchased: false, assignedTo: '', notes: '' }));
+  }
+
+  if (foodPayments.budget == null) {
+    foodPayments.budget = Math.round(foodItems.reduce((sum, it) => sum + it.qty * it.price, 0));
+  }
+  renderFoodTab();
+}
+
+// ── RENDER ────────────────────────────────────────────────────
+function renderFoodTab() {
+  const wrap = document.getElementById('food-table-wrap');
+  if (!wrap) return;
+  if (!foodItems.length) { wrap.innerHTML = '<div class="loader">No items yet.</div>'; recalcFood(); return; }
+
+  let html = `<div class="table-scroll"><table class="food-table">
+    <thead><tr>
+      <th>#</th><th>Item</th><th>Qty</th><th>Unit</th><th>Price/Unit</th><th>Total</th>
+      <th>Purchased</th><th>Supplier</th><th>Assigned</th><th>Notes</th><th></th>
+    </tr></thead><tbody>`;
+
+  foodItems.forEach((it, i) => {
+    html += `<tr class="${it.purchased ? 'bought' : ''}" data-id="${it.id}">
+      <td class="row-num" data-label="#">${i + 1}</td>
+      <td class="f-cell-name" data-label="Item">
+        <span class="cat-badge cat-${catSlug(it.category)}">${escAttr(it.category)}</span><br>
+        <input class="f-input f-name-input" data-field="name" value="${escAttr(it.name)}" onchange="handleFoodField(this, ${it.id})">
+      </td>
+      <td data-label="Qty"><input type="number" step="any" class="f-input f-num" style="width:60px" data-field="qty" value="${it.qty}" onchange="handleFoodField(this, ${it.id})"></td>
+      <td data-label="Unit"><input class="f-input" style="width:90px" data-field="unit" value="${escAttr(it.unit)}" onchange="handleFoodField(this, ${it.id})"></td>
+      <td data-label="Price/Unit"><input type="number" step="any" class="f-input f-num" style="width:80px" data-field="price" value="${it.price}" onchange="handleFoodField(this, ${it.id})"></td>
+      <td class="amount-cell" data-label="Total" id="famt-${it.id}">—</td>
+      <td data-label="Purchased">
+        <button class="purchase-toggle ${it.purchased ? 'bought' : 'pending'}" onclick="toggleFoodPurchased(${it.id})">
+          ${it.purchased ? '✅ Purchased' : '☐ Not yet'}
+        </button>
+      </td>
+      <td data-label="Supplier"><input class="f-input" style="width:110px" data-field="supplier" value="${escAttr(it.supplier)}" onchange="handleFoodField(this, ${it.id})" placeholder="—"></td>
+      <td data-label="Assigned"><input class="f-input" style="width:100px" data-field="assignedTo" value="${escAttr(it.assignedTo)}" onchange="handleFoodField(this, ${it.id})" placeholder="—"></td>
+      <td data-label="Notes"><input class="f-input" style="width:130px" data-field="notes" value="${escAttr(it.notes)}" onchange="handleFoodField(this, ${it.id})" placeholder="—"></td>
+      <td data-label=""><button class="row-del" title="Remove item" onclick="deleteFoodItem(${it.id})">✕</button></td>
+    </tr>`;
+  });
+
+  html += '</tbody></table></div>';
+  wrap.innerHTML = html;
+  recalcFood();
+}
+
+// ── FIELD EDIT / PURCHASE TOGGLE ──────────────────────────────
+async function handleFoodField(el, id) {
+  const item = foodItems.find(it => it.id === id);
+  if (!item) return;
+  const field = el.dataset.field;
+  item[field] = (field === 'qty' || field === 'price') ? (parseFloat(el.value) || 0) : el.value;
+  recalcFood();
+  await saveFoodItem(item);
+}
+
+async function toggleFoodPurchased(id) {
+  const item = foodItems.find(it => it.id === id);
+  if (!item) return;
+  item.purchased = !item.purchased;
+  renderFoodTab();
+  await saveFoodItem(item);
+}
+
+async function saveFoodItem(item) {
+  if (!db || item.id < 0) return; // local-only fallback, nothing to sync
+  const patch = {
+    category: item.category, name: item.name, qty: item.qty, unit: item.unit,
+    price: item.price, purchased: item.purchased, supplier: item.supplier,
+    assigned_to: item.assignedTo, notes: item.notes,
+  };
+  const { error } = await db.from('food_items').update(patch).eq('id', item.id);
+  if (error) showToast('Save failed — ' + error.message);
+}
+
+// ── ADD / DELETE ──────────────────────────────────────────────
+async function addFoodItem() {
+  const name = document.getElementById('food-new-name').value.trim();
+  if (!name) return;
+  const item = {
+    category: document.getElementById('food-new-cat').value,
+    name,
+    qty: parseFloat(document.getElementById('food-new-qty').value) || 1,
+    unit: document.getElementById('food-new-unit').value.trim(),
+    price: parseFloat(document.getElementById('food-new-price').value) || 0,
+    purchased: false, supplier: '', assignedTo: '', notes: '',
+  };
+
+  if (db) {
+    const { data, error } = await db.from('food_items').insert({
+      category: item.category, name: item.name, qty: item.qty, unit: item.unit,
+      price: item.price, purchased: false, supplier: '', assigned_to: '', notes: '',
+    }).select().single();
+    if (error) { showToast('Save failed — ' + error.message); return; }
+    item.id = data.id;
+  } else {
+    item.id = foodLocalIdSeq--;
+  }
+
+  foodItems.push(item);
+  renderFoodTab();
+  ['food-new-name', 'food-new-unit', 'food-new-price'].forEach(id => document.getElementById(id).value = '');
+  document.getElementById('food-new-qty').value = 1;
+  showToast(name + ' added');
+}
+
+async function deleteFoodItem(id) {
+  if (!confirm('Remove this item from the list?')) return;
+  foodItems = foodItems.filter(it => it.id !== id);
+  renderFoodTab();
+  if (db && id >= 0) {
+    const { error } = await db.from('food_items').delete().eq('id', id);
+    if (error) showToast('Delete failed — ' + error.message);
+  }
+}
+
+// ── RESET ─────────────────────────────────────────────────────
+async function resetFoodStatuses() {
+  if (!confirm('Mark all items as not purchased?')) return;
+  foodItems.forEach(it => it.purchased = false);
+  renderFoodTab();
+  showToast('Purchased statuses reset');
+  if (db) {
+    const ids = foodItems.filter(it => it.id >= 0).map(it => it.id);
+    if (ids.length) await db.from('food_items').update({ purchased: false }).in('id', ids);
+  }
+}
+
+// ── EXPORT / IMPORT ───────────────────────────────────────────
+function exportFoodJSON() {
+  const blob = new Blob([JSON.stringify({ foodItems, foodPayments }, null, 2)], { type: 'application/json' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'palm-villa-food-supplies.json';
+  a.click();
+  showToast('Exported');
+}
+
+async function importFoodJSON(e) {
+  const file = e.target.files[0]; if (!file) return;
+  const reader = new FileReader();
+  reader.onload = async ev => {
+    try {
+      const p = JSON.parse(ev.target.result);
+      if (!Array.isArray(p.foodItems)) throw new Error('bad file');
+      foodItems = p.foodItems;
+      if (p.foodPayments) foodPayments = p.foodPayments;
+      renderFoodTab();
+      showToast('Imported');
+      if (db) {
+        const upsertRows = foodItems.filter(it => it.id >= 0).map(it => ({
+          id: it.id, category: it.category, name: it.name, qty: it.qty, unit: it.unit,
+          price: it.price, purchased: it.purchased, supplier: it.supplier,
+          assigned_to: it.assignedTo, notes: it.notes,
+        }));
+        if (upsertRows.length) await db.from('food_items').upsert(upsertRows, { onConflict: 'id' });
+      }
+    } catch { showToast('Invalid file'); }
+  };
+  reader.readAsText(file);
+  e.target.value = '';
+}
+
+// ── BUDGET / PEOPLE INPUTS ────────────────────────────────────
+function onFoodBudgetChange() {
+  foodPayments.budget = parseFloat(document.getElementById('food-budget').value) || 0;
+  localStorage.setItem('pv_food_budget', foodPayments.budget);
+  recalcFood();
+}
+function onFoodPeopleChange() {
+  foodPayments.people = parseFloat(document.getElementById('food-people').value) || FOOD_PEOPLE_DEFAULT;
+  localStorage.setItem('pv_food_people', foodPayments.people);
+  recalcFood();
+}
+
+// ── CALCULATIONS ──────────────────────────────────────────────
+function recalcFood() {
+  let planned = 0, spent = 0, purchasedCount = 0;
+  const byCategory = {};
+
+  foodItems.forEach(it => {
+    const total = (Number(it.qty) || 0) * (Number(it.price) || 0);
+    planned += total;
+    if (it.purchased) { spent += total; purchasedCount++; }
+
+    const c = byCategory[it.category] || (byCategory[it.category] = { items: 0, planned: 0, spent: 0 });
+    c.items++; c.planned += total; if (it.purchased) c.spent += total;
+
+    const amtEl = document.getElementById('famt-' + it.id);
+    if (amtEl) amtEl.textContent = fmt(total);
+  });
+
+  const remainingCount = foodItems.length - purchasedCount;
+
+  // Don't stomp on the budget/people inputs while the user is actively typing in them
+  const budgetEl = document.getElementById('food-budget');
+  if (budgetEl && document.activeElement !== budgetEl) budgetEl.value = foodPayments.budget ?? '';
+  const peopleEl = document.getElementById('food-people');
+  if (peopleEl && document.activeElement !== peopleEl) peopleEl.value = foodPayments.people;
+
+  const budget = foodPayments.budget ?? planned;
+  const remaining = budget - spent;
+  const pp = foodPayments.people > 0 ? budget / foodPayments.people : 0;
+
+  const s = (id, val) => { const el = document.getElementById(id); if (el) el.textContent = val; };
+  s('f-total-items', foodItems.length);
+  s('f-purchased-count', purchasedCount);
+  s('f-remaining-count', remainingCount);
+  s('f-planned-stat', fmt(planned));
+  s('f-spent-stat', fmt(spent));
+  s('f-pp-stat', fmt(pp));
+  s('f-planned', fmt(planned));
+  s('f-spent', fmt(spent));
+  s('f-remaining', fmt(remaining));
+  s('f-pp', fmt(pp));
+
+  const pct = foodItems.length ? Math.min(100, (purchasedCount / foodItems.length) * 100) : 0;
+  const pf = document.getElementById('food-prog-fill');
+  const pl = document.getElementById('food-prog-label');
+  if (pf) pf.style.width = pct + '%';
+  if (pl) pl.textContent = purchasedCount + ' / ' + foodItems.length;
+
+  const catBody = document.getElementById('food-cat-breakdown-body');
+  if (catBody) {
+    catBody.innerHTML = FOOD_CATEGORIES.filter(c => byCategory[c]).map(c => {
+      const d = byCategory[c];
+      return `<tr><td><span class="cat-badge cat-${catSlug(c)}">${escAttr(c)}</span></td><td>${d.items}</td><td>${fmt(d.planned)}</td><td>${fmt(d.spent)}</td></tr>`;
+    }).join('');
+  }
+}
+
+// ── REALTIME ──────────────────────────────────────────────────
+function subscribeFoodRealtime() {
+  if (!db) return;
+  db.channel('food-items-live')
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'food_items' }, payload => {
+      if (payload.eventType === 'DELETE') {
+        foodItems = foodItems.filter(it => it.id !== payload.old.id);
+      } else {
+        const row = mapFoodRow(payload.new);
+        const idx = foodItems.findIndex(it => it.id === row.id);
+        if (idx >= 0) foodItems[idx] = row; else foodItems.push(row);
+      }
+      renderFoodTab();
+    })
+    .subscribe();
 }
 
 </script>
