@@ -51,6 +51,9 @@ body {
 }
 .conn-dot.ok { background: #22c55e; }
 .conn-dot.err { background: #ef4444; }
+.conn-bar { transition: padding 0.2s ease; }
+.conn-bar.synced { padding: 4px 24px; }
+.conn-bar.synced #conn-text { display: none; }
 
 /* ── TABS ── */
 .tabs { display: flex; gap: 6px; margin-bottom: 20px; border-bottom: 1px solid #e2e8f0; }
@@ -190,7 +193,7 @@ select.p-not_requested{ background-color: #f8f9fa; border-color: #e2e8f0; color:
 
 /* ── COST CALCULATOR ── */
 .calc-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
-@media (max-width: 600px) { .calc-grid { grid-template-columns: 1fr; } }
+@media (max-width: 700px) { .calc-grid { grid-template-columns: 1fr; } }
 
 .calc-panel { background: #fff; border: 1px solid #e2e8f0; border-radius: 12px; padding: 20px; }
 .calc-panel h3 { font-size: 13px; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 14px; }
@@ -225,19 +228,6 @@ select.p-not_requested{ background-color: #f8f9fa; border-color: #e2e8f0; color:
   padding: 1px 5px; margin-left: 5px;
   text-transform: uppercase; letter-spacing: 0.5px;
 }
-
-/* ── MATCHES ── */
-.matches-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 14px; }
-.match-card {
-  background: #fff; border: 1px solid #e2e8f0; border-radius: 12px;
-  padding: 18px; position: relative; overflow: hidden;
-}
-.match-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px; background: linear-gradient(90deg, #c9a84c, #f59e0b); }
-.match-round { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 1.5px; color: #c9a84c; margin-bottom: 10px; }
-.match-teams { font-size: 18px; font-weight: 700; color: #1a1a2e; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
-.match-vs { font-size: 11px; font-weight: 600; color: #94a3b8; text-transform: uppercase; }
-.match-venue { font-size: 11px; color: #94a3b8; margin-top: 8px; }
-.match-note { margin-top: 10px; font-size: 11px; background: #fffbeb; border: 1px solid #fde047; border-radius: 6px; padding: 6px 10px; color: #92400e; }
 
 /* ── TOOLBAR ── */
 .toolbar { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 14px; }
@@ -286,27 +276,28 @@ select.p-not_requested{ background-color: #f8f9fa; border-color: #e2e8f0; color:
 .add-row.add-row-food { flex-wrap: wrap; }
 .add-row.add-row-food input, .add-row.add-row-food select { flex: 1; min-width: 90px; }
 
-/* Stack the food table into cards below 700px instead of horizontal scroll */
+/* Stack any .stack-table (RSVP / Food / Payments) into cards below 700px,
+   instead of horizontal-scrolling — shared by all three data tables. */
 @media (max-width: 700px) {
-  .food-table thead { display: none; }
-  .food-table, .food-table tbody, .food-table tr, .food-table td { display: block; width: 100%; }
-  .food-table tr {
+  .stack-table thead { display: none; }
+  .stack-table, .stack-table tbody, .stack-table tr, .stack-table td { display: block; width: 100%; }
+  .stack-table tr {
     border: 1px solid #e2e8f0; border-radius: 10px;
     margin-bottom: 10px; padding: 8px 10px; background: #fff;
   }
-  .food-table tbody tr.bought { background: #f9fefb; }
-  .food-table td {
+  .stack-table td {
     display: flex; align-items: center; justify-content: space-between;
     gap: 10px; border-bottom: none !important; padding: 6px 2px;
   }
-  .food-table td::before {
+  .stack-table td::before {
     content: attr(data-label); font-size: 11px; font-weight: 700;
     color: #94a3b8; text-transform: uppercase; letter-spacing: 0.5px;
     flex-shrink: 0;
   }
-  .food-table td.row-num { display: none; }
-  .food-table td.f-cell-name { justify-content: flex-start; flex-wrap: wrap; }
-  .food-table td.f-cell-name::before { display: none; }
+  .stack-table td.row-num { display: none; }
+  .stack-table td.cell-lead { justify-content: flex-start; flex-wrap: wrap; }
+  .stack-table td.cell-lead::before { display: none; }
+  .food-table tbody tr.bought { background: #f9fefb; }
 }
 
 /* ── LOADING ── */
@@ -323,10 +314,37 @@ select.p-not_requested{ background-color: #f8f9fa; border-color: #e2e8f0; color:
 }
 .toast.show { opacity: 1; transform: translateY(0); }
 
-@media (max-width: 600px) {
+/* ── COLLAPSIBLE STAT BREAKDOWN (native <details>, no library) ── */
+.stats-detail { margin-top: 14px; }
+.stats-detail summary {
+  cursor: pointer; font-size: 12px; font-weight: 600; color: #64748b;
+  padding: 6px 0; list-style: none; user-select: none;
+}
+.stats-detail summary::-webkit-details-marker { display: none; }
+.stats-detail summary::before { content: '▸ '; }
+.stats-detail[open] summary::before { content: '▾ '; }
+.stats-detail .stats-grid { margin-top: 10px; }
+
+@media (max-width: 700px) {
   .hero { padding: 24px 16px 20px; }
   .main { padding: 16px; }
   .stats-grid { grid-template-columns: repeat(2, 1fr); }
+
+  /* Bigger tap targets for thumbs */
+  select { padding: 13px 26px 13px 10px; }
+  .purchase-toggle { padding: 12px 14px; }
+  .row-del { padding: 10px 14px; font-size: 16px; }
+  .btn { padding: 12px 16px; }
+
+  /* Stack add-item rows instead of wrapping inline */
+  .add-row { flex-direction: column; align-items: stretch; }
+
+  /* Keep the toast reachable above the iPhone home-indicator, centered */
+  .toast {
+    left: 50%; right: auto; bottom: max(24px, calc(env(safe-area-inset-bottom) + 16px));
+    transform: translate(-50%, 8px);
+  }
+  .toast.show { transform: translate(-50%, 0); }
 }
 </style>
 </head>
@@ -365,16 +383,22 @@ select.p-not_requested{ background-color: #f8f9fa; border-color: #e2e8f0; color:
     <div class="section-title">Overview</div>
     <div class="stats-grid">
       <div class="stat-card green">  <div class="stat-num" id="st-confirmed">—</div>  <div class="stat-label">Confirmed</div></div>
-      <div class="stat-card teal">   <div class="stat-num" id="st-willjoin">—</div>    <div class="stat-label">Will Join</div></div>
       <div class="stat-card blue">   <div class="stat-num" id="st-likely">—</div>      <div class="stat-label">Likely Joining</div></div>
-      <div class="stat-card purple"> <div class="stat-num" id="st-contacted">—</div>   <div class="stat-label">Contacted</div></div>
-      <div class="stat-card amber">  <div class="stat-num" id="st-maybe">—</div>       <div class="stat-label">Maybe</div></div>
-      <div class="stat-card orange"> <div class="stat-num" id="st-not_sleeping">—</div><div class="stat-label">Not Sleeping</div></div>
-      <div class="stat-card red">    <div class="stat-num" id="st-declined">—</div>    <div class="stat-label">Declined</div></div>
-      <div class="stat-card slate">  <div class="stat-num" id="st-not_contacted">—</div><div class="stat-label">Not Contacted</div></div>
       <div class="stat-card gold">   <div class="stat-num" id="st-cpp" style="font-size:16px;">—</div><div class="stat-label">Cost / Person</div></div>
       <div class="stat-card slate">  <div class="stat-num" id="st-spots">—</div>       <div class="stat-label">Spots Left</div></div>
     </div>
+
+    <details class="stats-detail">
+      <summary>Show breakdown</summary>
+      <div class="stats-grid">
+        <div class="stat-card teal">   <div class="stat-num" id="st-willjoin">—</div>    <div class="stat-label">Will Join</div></div>
+        <div class="stat-card purple"> <div class="stat-num" id="st-contacted">—</div>   <div class="stat-label">Contacted</div></div>
+        <div class="stat-card amber">  <div class="stat-num" id="st-maybe">—</div>       <div class="stat-label">Maybe</div></div>
+        <div class="stat-card orange"> <div class="stat-num" id="st-not_sleeping">—</div><div class="stat-label">Not Sleeping</div></div>
+        <div class="stat-card red">    <div class="stat-num" id="st-declined">—</div>    <div class="stat-label">Declined</div></div>
+        <div class="stat-card slate">  <div class="stat-num" id="st-not_contacted">—</div><div class="stat-label">Not Contacted</div></div>
+      </div>
+    </details>
 
     <div class="progress-wrap" style="margin-top:14px;">
       <div class="progress-meta">
@@ -393,6 +417,7 @@ select.p-not_requested{ background-color: #f8f9fa; border-color: #e2e8f0; color:
   <!-- RSVP TRACKER -->
   <div class="section">
     <div class="section-title">RSVP Tracker</div>
+    <p style="font-size:12px; color:#64748b; margin-bottom:10px;">Each joining guest owes ~<span id="rsvp-cpp-note">—</span>.</p>
     <div class="toolbar">
       <button class="btn btn-ghost" onclick="resetAll()">↺ Reset statuses</button>
       <button class="btn btn-ghost" onclick="exportJSON()">⬇ Export</button>
@@ -440,25 +465,6 @@ select.p-not_requested{ background-color: #f8f9fa; border-color: #e2e8f0; color:
         <div class="calc-row"><span class="calc-row-label">Still outstanding</span><span class="calc-row-value" style="color:#ef4444;" id="p-outstanding">—</span></div>
       </div>
     </div>
-  </div>
-
-  <!-- MATCH CARDS -->
-  <div class="section">
-    <div class="section-title">Match Night · 4 July 2026</div>
-    <div class="matches-grid">
-      <div class="match-card">
-        <div class="match-round">⚽ Round of 16</div>
-        <div class="match-teams">🇩🇪 Germany <span class="match-vs">vs</span> France 🇫🇷</div>
-        <div class="match-venue">📍 Lincoln Financial Field · Philadelphia</div>
-      </div>
-      <div class="match-card">
-        <div class="match-round">⚽ Round of 16</div>
-        <div class="match-teams">🇰🇷 Korea <span class="match-vs">vs</span> Morocco 🇲🇦</div>
-        <div class="match-venue">📍 NRG Stadium · Houston</div>
-        <div class="match-note">⚠ Netherlands may replace Morocco depending on group stage results</div>
-      </div>
-    </div>
-    <p style="font-size:11px; color:#94a3b8; margin-top:10px; font-style:italic;">Fixtures subject to change based on group stage outcomes.</p>
   </div>
 
   </div>
@@ -524,7 +530,6 @@ select.p-not_requested{ background-color: #f8f9fa; border-color: #e2e8f0; color:
           </select>
           <input type="text" id="food-new-name" placeholder="Item name…" onkeydown="if(event.key==='Enter')addFoodItem()">
           <input type="number" id="food-new-qty" placeholder="Qty" value="1">
-          <input type="text" id="food-new-unit" placeholder="Unit">
           <input type="number" id="food-new-price" placeholder="Price/unit">
           <button class="btn btn-primary" onclick="addFoodItem()">+ Add</button>
         </div>
@@ -556,6 +561,36 @@ select.p-not_requested{ background-color: #f8f9fa; border-color: #e2e8f0; color:
             <thead><tr><th>Category</th><th>Items</th><th>Planned</th><th>Spent</th></tr></thead>
             <tbody id="food-cat-breakdown-body"></tbody>
           </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- PAYMENTS BY NAME — who has paid into the shared food budget.
+         Reuses the same guest roster as the Accommodation tab (no
+         duplicate name list) and the same PAY_OPTS/select-status
+         pattern as the RSVP table's Payment column. -->
+    <div class="section">
+      <div class="section-title">Payments by Name</div>
+      <p style="font-size:12px; color:#64748b; margin-bottom:10px;">Each of <span id="fp-people-note">—</span> people owes ~<span id="fp-share-note">—</span> toward food & supplies.</p>
+      <div class="toolbar">
+        <button class="btn btn-ghost" onclick="resetFoodPaymentStatuses()">↺ Reset statuses</button>
+      </div>
+      <div class="card">
+        <div id="food-payments-wrap">
+          <div class="loader" id="food-payments-loader">Loading from database…</div>
+        </div>
+      </div>
+      <div class="calc-grid" style="margin-top:14px;">
+        <div class="calc-panel">
+          <h3>Collection Status</h3>
+          <div class="calc-row"><span class="calc-row-label">✅ Paid</span>          <span class="calc-row-value green" id="fp-paid-count">—</span></div>
+          <div class="calc-row"><span class="calc-row-label">⏳ Pending</span>       <span class="calc-row-value" style="color:#d97706;" id="fp-pending-count">—</span></div>
+          <div class="calc-row"><span class="calc-row-label">— Not requested</span>  <span class="calc-row-value" style="color:#94a3b8;" id="fp-none-count">—</span></div>
+          <div class="calc-row" style="margin-top:8px; padding-top:12px; border-top:2px solid #f1f5f9; border-bottom:none;">
+            <span class="calc-row-label">Total collected</span>
+            <span class="calc-row-value green" id="fp-collected">—</span>
+          </div>
+          <div class="calc-row"><span class="calc-row-label">Outstanding</span><span class="calc-row-value" style="color:#ef4444;" id="fp-outstanding">—</span></div>
         </div>
       </div>
     </div>
@@ -625,6 +660,7 @@ window.addEventListener('load', async () => {
     setConn('err', 'Supabase library failed to load. Check your internet connection.');
     renderFallback();
     await initFoodTab();
+    await initFoodPayments();
     return;
   }
 
@@ -637,6 +673,7 @@ window.addEventListener('load', async () => {
     setConn('err', 'Database error: ' + error.message);
     renderFallback();
     await initFoodTab();
+    await initFoodPayments();
     return;
   }
 
@@ -659,9 +696,10 @@ window.addEventListener('load', async () => {
   renderTable();
   subscribeRealtime();
 
-  // Food & Supplies tab has its own table — load it independently so a
+  // Food & Supplies tab has its own tables — load them independently so a
   // problem with one tab never blocks the other.
   await initFoodTab();
+  await initFoodPayments();
 });
 
 // ── FALLBACK (offline) ────────────────────────────────────────
@@ -687,10 +725,12 @@ function fmt(n) {
 }
 
 function setConn(state, msg) {
+  const bar  = document.getElementById('conn-bar');
   const dot  = document.getElementById('conn-dot');
   const text = document.getElementById('conn-text');
   dot.className  = 'conn-dot' + (state === 'ok' ? ' ok' : state === 'err' ? ' err' : '');
   text.textContent = msg;
+  bar.classList.toggle('synced', state === 'ok');
 }
 
 function showToast(msg) {
@@ -711,12 +751,9 @@ function renderTable() {
   const wrap = document.getElementById('table-wrap');
   if (!guests.length) { wrap.innerHTML = '<div class="loader">No guests yet.</div>'; recalculate(); return; }
 
-  const rsvpOptions  = RSVP_OPTS.map(o => `<option value="${o}">${RSVP_LBL[o]}</option>`).join('');
-  const payOptions   = PAY_OPTS.map(o  => `<option value="${o}">${PAY_LBL[o]}</option>`).join('');
-
-  let html = `<div class="table-scroll"><table>
+  let html = `<div class="table-scroll"><table class="stack-table">
     <thead><tr>
-      <th>#</th><th>Name</th><th>RSVP Status</th><th>Payment</th><th>Amount Due</th>
+      <th>#</th><th>Name</th><th>RSVP Status</th><th>Payment</th>
     </tr></thead><tbody>`;
 
   guests.forEach((g, i) => {
@@ -726,11 +763,10 @@ function renderTable() {
     const pSel = PAY_OPTS.map(o  => `<option value="${o}"${r.pay===o?' selected':''}>${PAY_LBL[o]}</option>`).join('');
 
     html += `<tr class="${g.you?'you':''}">
-      <td class="row-num">${i+1}</td>
-      <td class="name-cell">${g.name}${you}</td>
-      <td><select class="s-${r.rsvp}" data-name="${g.name}" data-field="rsvp" onchange="handleSelect(this)">${rSel}</select></td>
-      <td><select class="p-${r.pay}"  data-name="${g.name}" data-field="pay"  onchange="handleSelect(this)">${pSel}</select></td>
-      <td class="amount-cell" id="amt-${i}">—</td>
+      <td class="row-num" data-label="#">${i+1}</td>
+      <td class="name-cell cell-lead" data-label="Name">${g.name}${you}</td>
+      <td data-label="RSVP Status"><select class="s-${r.rsvp}" data-name="${g.name}" data-field="rsvp" onchange="handleSelect(this)">${rSel}</select></td>
+      <td data-label="Payment"><select class="p-${r.pay}"  data-name="${g.name}" data-field="pay"  onchange="handleSelect(this)">${pSel}</select></td>
     </tr>`;
   });
 
@@ -770,7 +806,9 @@ async function addGuest() {
 
   insertGuest(name);
   rows[name] = { rsvp: 'not_contacted', pay: 'not_requested' };
+  foodPaymentRows[name] = { status: 'not_requested', notes: '' };
   renderTable();
+  renderFoodPayments();
   input.value = '';
 
   if (db) {
@@ -780,6 +818,11 @@ async function addGuest() {
     );
     if (error) showToast('Save failed — ' + error.message);
     else showToast(name + ' added');
+
+    await db.from('food_payments').upsert(
+      { name, status: 'not_requested', notes: '' },
+      { onConflict: 'name' }
+    );
   }
 }
 
@@ -864,14 +907,9 @@ function recalculate() {
   const collected = paidCount * cpp;
   const balance   = total - collected;
 
-  // Amount-due cells
-  guests.forEach((g, i) => {
-    const el = document.getElementById('amt-' + i);
-    if (!el) return;
-    const r = rows[g.name] || {};
-    const joining = r.rsvp === 'confirmed' || r.rsvp === 'available';
-    el.textContent = (joining && likely > 0) ? fmt(cpp) : '—';
-  });
+  // Explanatory note above the RSVP table (replaces the old per-row Amount Due column)
+  const rsvpNote = document.getElementById('rsvp-cpp-note');
+  if (rsvpNote) rsvpNote.textContent = likely > 0 ? fmt(cpp) : 'an unknown amount yet';
 
   // Stats
   const s = (id, val) => { const el = document.getElementById(id); if (el) el.textContent = val; };
@@ -980,7 +1018,7 @@ const BASE_FOOD_ITEMS = [
   { category:'Pool / Comfort',       name:'HDMI cable',                                        qty:1,  unit:'piece',      price:0,    supplier:'Bring from home' },
 ];
 
-// foodItems    = working shopping-list rows (mirrors `guests` above — id, category, name, qty, unit, price, purchased, supplier, assignedTo, notes)
+// foodItems    = working shopping-list rows (mirrors `guests` above — id, category, name, qty, price, purchased)
 // foodPayments = budget/cost-split settings, kept per-browser in localStorage (mirrors the cost calculator's total-cost input)
 let foodItems = [];
 let foodPayments = { budget: null, people: FOOD_PEOPLE_DEFAULT };
@@ -991,8 +1029,8 @@ function setFoodConn(msg) {
   if (el) el.textContent = msg;
 }
 
-// Free-text fields (name/supplier/assignedTo/notes) are user input rendered via
-// innerHTML, so escape them before embedding in the table markup.
+// Free-text fields (name, and guest/category strings) are user input rendered
+// via innerHTML, so escape them before embedding in the table markup.
 function escAttr(str) {
   return String(str ?? '').replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 }
@@ -1001,11 +1039,12 @@ function catSlug(cat) {
   return String(cat).toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
 }
 
+// Unit/Supplier/Assigned/Notes still exist as columns in the food_items table
+// (harmless, unused) but aren't part of the app's working item shape anymore.
 function mapFoodRow(r) {
   return {
-    id: r.id, category: r.category, name: r.name, qty: Number(r.qty) || 0,
-    unit: r.unit || '', price: Number(r.price) || 0, purchased: !!r.purchased,
-    supplier: r.supplier || '', assignedTo: r.assigned_to || '', notes: r.notes || '',
+    id: r.id, category: r.category, name: r.name,
+    qty: Number(r.qty) || 0, price: Number(r.price) || 0, purchased: !!r.purchased,
   };
 }
 
@@ -1036,10 +1075,10 @@ async function initFoodTab() {
       subscribeFoodRealtime();
     } catch (e) {
       setFoodConn('Local-only — run the food_items setup SQL to enable cross-device sync');
-      foodItems = BASE_FOOD_ITEMS.map(it => ({ id: foodLocalIdSeq--, ...it, purchased: false, assignedTo: '', notes: '' }));
+      foodItems = BASE_FOOD_ITEMS.map(it => ({ id: foodLocalIdSeq--, category: it.category, name: it.name, qty: it.qty, price: it.price, purchased: false }));
     }
   } else {
-    foodItems = BASE_FOOD_ITEMS.map(it => ({ id: foodLocalIdSeq--, ...it, purchased: false, assignedTo: '', notes: '' }));
+    foodItems = BASE_FOOD_ITEMS.map(it => ({ id: foodLocalIdSeq--, category: it.category, name: it.name, qty: it.qty, price: it.price, purchased: false }));
   }
 
   if (foodPayments.budget == null) {
@@ -1054,31 +1093,26 @@ function renderFoodTab() {
   if (!wrap) return;
   if (!foodItems.length) { wrap.innerHTML = '<div class="loader">No items yet.</div>'; recalcFood(); return; }
 
-  let html = `<div class="table-scroll"><table class="food-table">
+  let html = `<div class="table-scroll"><table class="food-table stack-table">
     <thead><tr>
-      <th>#</th><th>Item</th><th>Qty</th><th>Unit</th><th>Price/Unit</th><th>Total</th>
-      <th>Purchased</th><th>Supplier</th><th>Assigned</th><th>Notes</th><th></th>
+      <th>#</th><th>Item</th><th>Qty</th><th>Price</th><th>Total</th><th>Purchased</th><th></th>
     </tr></thead><tbody>`;
 
   foodItems.forEach((it, i) => {
     html += `<tr class="${it.purchased ? 'bought' : ''}" data-id="${it.id}">
       <td class="row-num" data-label="#">${i + 1}</td>
-      <td class="f-cell-name" data-label="Item">
+      <td class="f-cell-name cell-lead" data-label="Item">
         <span class="cat-badge cat-${catSlug(it.category)}">${escAttr(it.category)}</span><br>
         <input class="f-input f-name-input" data-field="name" value="${escAttr(it.name)}" onchange="handleFoodField(this, ${it.id})">
       </td>
       <td data-label="Qty"><input type="number" step="any" class="f-input f-num" style="width:60px" data-field="qty" value="${it.qty}" onchange="handleFoodField(this, ${it.id})"></td>
-      <td data-label="Unit"><input class="f-input" style="width:90px" data-field="unit" value="${escAttr(it.unit)}" onchange="handleFoodField(this, ${it.id})"></td>
-      <td data-label="Price/Unit"><input type="number" step="any" class="f-input f-num" style="width:80px" data-field="price" value="${it.price}" onchange="handleFoodField(this, ${it.id})"></td>
+      <td data-label="Price"><input type="number" step="any" class="f-input f-num" style="width:80px" data-field="price" value="${it.price}" onchange="handleFoodField(this, ${it.id})"></td>
       <td class="amount-cell" data-label="Total" id="famt-${it.id}">—</td>
       <td data-label="Purchased">
         <button class="purchase-toggle ${it.purchased ? 'bought' : 'pending'}" onclick="toggleFoodPurchased(${it.id})">
           ${it.purchased ? '✅ Purchased' : '☐ Not yet'}
         </button>
       </td>
-      <td data-label="Supplier"><input class="f-input" style="width:110px" data-field="supplier" value="${escAttr(it.supplier)}" onchange="handleFoodField(this, ${it.id})" placeholder="—"></td>
-      <td data-label="Assigned"><input class="f-input" style="width:100px" data-field="assignedTo" value="${escAttr(it.assignedTo)}" onchange="handleFoodField(this, ${it.id})" placeholder="—"></td>
-      <td data-label="Notes"><input class="f-input" style="width:130px" data-field="notes" value="${escAttr(it.notes)}" onchange="handleFoodField(this, ${it.id})" placeholder="—"></td>
       <td data-label=""><button class="row-del" title="Remove item" onclick="deleteFoodItem(${it.id})">✕</button></td>
     </tr>`;
   });
@@ -1108,11 +1142,7 @@ async function toggleFoodPurchased(id) {
 
 async function saveFoodItem(item) {
   if (!db || item.id < 0) return; // local-only fallback, nothing to sync
-  const patch = {
-    category: item.category, name: item.name, qty: item.qty, unit: item.unit,
-    price: item.price, purchased: item.purchased, supplier: item.supplier,
-    assigned_to: item.assignedTo, notes: item.notes,
-  };
+  const patch = { category: item.category, name: item.name, qty: item.qty, price: item.price, purchased: item.purchased };
   const { error } = await db.from('food_items').update(patch).eq('id', item.id);
   if (error) showToast('Save failed — ' + error.message);
 }
@@ -1125,15 +1155,13 @@ async function addFoodItem() {
     category: document.getElementById('food-new-cat').value,
     name,
     qty: parseFloat(document.getElementById('food-new-qty').value) || 1,
-    unit: document.getElementById('food-new-unit').value.trim(),
     price: parseFloat(document.getElementById('food-new-price').value) || 0,
-    purchased: false, supplier: '', assignedTo: '', notes: '',
+    purchased: false,
   };
 
   if (db) {
     const { data, error } = await db.from('food_items').insert({
-      category: item.category, name: item.name, qty: item.qty, unit: item.unit,
-      price: item.price, purchased: false, supplier: '', assigned_to: '', notes: '',
+      category: item.category, name: item.name, qty: item.qty, price: item.price, purchased: false,
     }).select().single();
     if (error) { showToast('Save failed — ' + error.message); return; }
     item.id = data.id;
@@ -1143,7 +1171,7 @@ async function addFoodItem() {
 
   foodItems.push(item);
   renderFoodTab();
-  ['food-new-name', 'food-new-unit', 'food-new-price'].forEach(id => document.getElementById(id).value = '');
+  ['food-new-name', 'food-new-price'].forEach(id => document.getElementById(id).value = '');
   document.getElementById('food-new-qty').value = 1;
   showToast(name + ' added');
 }
@@ -1193,9 +1221,7 @@ async function importFoodJSON(e) {
       showToast('Imported');
       if (db) {
         const upsertRows = foodItems.filter(it => it.id >= 0).map(it => ({
-          id: it.id, category: it.category, name: it.name, qty: it.qty, unit: it.unit,
-          price: it.price, purchased: it.purchased, supplier: it.supplier,
-          assigned_to: it.assignedTo, notes: it.notes,
+          id: it.id, category: it.category, name: it.name, qty: it.qty, price: it.price, purchased: it.purchased,
         }));
         if (upsertRows.length) await db.from('food_items').upsert(upsertRows, { onConflict: 'id' });
       }
@@ -1271,6 +1297,9 @@ function recalcFood() {
       return `<tr><td><span class="cat-badge cat-${catSlug(c)}">${escAttr(c)}</span></td><td>${d.items}</td><td>${fmt(d.planned)}</td><td>${fmt(d.spent)}</td></tr>`;
     }).join('');
   }
+
+  // Budget/people here also drive the Payments-by-Name ledger's collected/outstanding figures
+  recalcFoodPayments();
 }
 
 // ── REALTIME ──────────────────────────────────────────────────
@@ -1286,6 +1315,154 @@ function subscribeFoodRealtime() {
         if (idx >= 0) foodItems[idx] = row; else foodItems.push(row);
       }
       renderFoodTab();
+    })
+    .subscribe();
+}
+
+// ════════════════════════════════════════════════════════════════
+// FOOD PAYMENTS BY NAME
+// Tracks who has paid into the shared food budget — separate from
+// the per-item Shopping List above. Reuses the same `guests` roster
+// as the Accommodation tab (no duplicate name list) and the same
+// PAY_OPTS/PAY_LBL + select.p-* styling as the RSVP table's Payment
+// column. Amount collected is derived from status × per-person share
+// (foodPayments.budget / .people) — there's no separate amount field,
+// exactly like the Accommodation tab's pay tracking already works.
+// ════════════════════════════════════════════════════════════════
+
+// foodPaymentRows = object keyed by guest name → { status, notes } (mirrors `rows` for RSVP)
+let foodPaymentRows = {};
+
+function mapFoodPaymentRow(r) {
+  return { status: r.status || 'not_requested', notes: r.notes || '' };
+}
+
+// ── INIT ──────────────────────────────────────────────────────
+async function initFoodPayments() {
+  if (!db) {
+    guests.forEach(g => { foodPaymentRows[g.name] = { status: 'not_requested', notes: '' }; });
+    renderFoodPayments();
+    return;
+  }
+
+  try {
+    const { data, error } = await db.from('food_payments').select('*');
+    if (error) throw error;
+
+    if (!data || data.length === 0) {
+      const seedRows = guests.map(g => ({ name: g.name, status: 'not_requested', notes: '' }));
+      await db.from('food_payments').insert(seedRows);
+      guests.forEach(g => { foodPaymentRows[g.name] = { status: 'not_requested', notes: '' }; });
+    } else {
+      data.forEach(r => { foodPaymentRows[r.name] = mapFoodPaymentRow(r); });
+      // Guests added after the table was first seeded won't have a row yet
+      guests.forEach(g => { if (!foodPaymentRows[g.name]) foodPaymentRows[g.name] = { status: 'not_requested', notes: '' }; });
+    }
+    subscribeFoodPaymentsRealtime();
+  } catch (e) {
+    guests.forEach(g => { foodPaymentRows[g.name] = { status: 'not_requested', notes: '' }; });
+  }
+  renderFoodPayments();
+}
+
+// ── RENDER ────────────────────────────────────────────────────
+function renderFoodPayments() {
+  const wrap = document.getElementById('food-payments-wrap');
+  if (!wrap) return;
+  if (!guests.length) { wrap.innerHTML = '<div class="loader">No guests yet.</div>'; recalcFoodPayments(); return; }
+
+  let html = `<div class="table-scroll"><table class="stack-table">
+    <thead><tr><th>#</th><th>Name</th><th>Status</th><th>Notes</th></tr></thead><tbody>`;
+
+  guests.forEach((g, i) => {
+    const r = foodPaymentRows[g.name] || { status: 'not_requested', notes: '' };
+    const you = g.you ? `<span class="you-badge">You</span>` : '';
+    const pSel = PAY_OPTS.map(o => `<option value="${o}"${r.status===o?' selected':''}>${PAY_LBL[o]}</option>`).join('');
+
+    html += `<tr class="${g.you?'you':''}">
+      <td class="row-num" data-label="#">${i+1}</td>
+      <td class="name-cell cell-lead" data-label="Name">${g.name}${you}</td>
+      <td data-label="Status"><select class="p-${r.status}" data-name="${g.name}" onchange="handleFoodPaymentSelect(this)">${pSel}</select></td>
+      <td data-label="Notes"><input class="f-input" data-name="${g.name}" value="${escAttr(r.notes)}" onchange="handleFoodPaymentNotes(this)" placeholder="—"></td>
+    </tr>`;
+  });
+
+  html += '</tbody></table></div>';
+  wrap.innerHTML = html;
+  recalcFoodPayments();
+}
+
+// ── FIELD EDIT ────────────────────────────────────────────────
+async function handleFoodPaymentSelect(el) {
+  const name = el.dataset.name;
+  if (!foodPaymentRows[name]) foodPaymentRows[name] = { status: 'not_requested', notes: '' };
+  foodPaymentRows[name].status = el.value;
+  el.className = `p-${el.value}`;
+  recalcFoodPayments();
+  await saveFoodPayment(name);
+}
+
+async function handleFoodPaymentNotes(el) {
+  const name = el.dataset.name;
+  if (!foodPaymentRows[name]) foodPaymentRows[name] = { status: 'not_requested', notes: '' };
+  foodPaymentRows[name].notes = el.value;
+  await saveFoodPayment(name);
+}
+
+async function saveFoodPayment(name) {
+  if (!db) return;
+  const r = foodPaymentRows[name];
+  const { error } = await db.from('food_payments').update({ status: r.status, notes: r.notes }).eq('name', name);
+  if (error) showToast('Save failed — ' + error.message);
+}
+
+// ── RESET ─────────────────────────────────────────────────────
+async function resetFoodPaymentStatuses() {
+  if (!confirm('Reset all food payment statuses to default?')) return;
+  guests.forEach(g => { foodPaymentRows[g.name] = { status: 'not_requested', notes: '' }; });
+  renderFoodPayments();
+  showToast('Payment statuses reset');
+  if (db) {
+    const upsertRows = guests.map(g => ({ name: g.name, status: 'not_requested', notes: '' }));
+    await db.from('food_payments').upsert(upsertRows, { onConflict: 'name' });
+  }
+}
+
+// ── CALCULATIONS ──────────────────────────────────────────────
+function recalcFoodPayments() {
+  let paidCount = 0, pendingCount = 0, noneCount = 0;
+  guests.forEach(g => {
+    const status = (foodPaymentRows[g.name] || {}).status || 'not_requested';
+    if (status === 'paid') paidCount++;
+    else if (status === 'pending') pendingCount++;
+    else noneCount++;
+  });
+
+  const pp = foodPayments.people > 0 ? (foodPayments.budget || 0) / foodPayments.people : 0;
+  const collected = paidCount * pp;
+  const outstanding = (foodPayments.budget || 0) - collected;
+
+  const s = (id, val) => { const el = document.getElementById(id); if (el) el.textContent = val; };
+  s('fp-people-note', foodPayments.people);
+  s('fp-share-note', fmt(pp));
+  s('fp-paid-count', paidCount);
+  s('fp-pending-count', pendingCount);
+  s('fp-none-count', noneCount);
+  s('fp-collected', fmt(collected));
+  s('fp-outstanding', fmt(Math.max(0, outstanding)));
+}
+
+// ── REALTIME ──────────────────────────────────────────────────
+function subscribeFoodPaymentsRealtime() {
+  if (!db) return;
+  db.channel('food-payments-live')
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'food_payments' }, payload => {
+      if (payload.eventType === 'DELETE') {
+        delete foodPaymentRows[payload.old.name];
+      } else {
+        foodPaymentRows[payload.new.name] = mapFoodPaymentRow(payload.new);
+      }
+      renderFoodPayments();
     })
     .subscribe();
 }
