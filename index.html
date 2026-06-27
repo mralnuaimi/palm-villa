@@ -507,6 +507,14 @@ select.p-not_requested{ background-color: #f8f9fa; border-color: #e2e8f0; color:
     <div class="section">
       <div class="section-title">Shopping List</div>
       <div class="toolbar">
+        <select id="food-sort" style="max-width:170px;" onchange="onFoodSortChange()">
+          <option value="default">Sort: Default order</option>
+          <option value="category">Sort: Category</option>
+          <option value="name">Sort: Name (A–Z)</option>
+          <option value="price-desc">Sort: Price (High–Low)</option>
+          <option value="price-asc">Sort: Price (Low–High)</option>
+          <option value="purchased">Sort: Not Purchased First</option>
+        </select>
         <button class="btn btn-ghost" onclick="resetFoodStatuses()">↺ Reset purchased</button>
         <button class="btn btn-ghost" onclick="exportFoodJSON()">⬇ Export</button>
         <label class="btn btn-ghost" style="cursor:pointer;">
@@ -1024,6 +1032,28 @@ let foodItems = [];
 let foodPayments = { budget: null, people: FOOD_PEOPLE_DEFAULT };
 let foodLocalIdSeq = -1; // negative ids = added locally, not yet (or never) saved to Supabase
 
+// Display-only sort order for the Shopping List — never reorders `foodItems`
+// itself (which stays in DB/id order), just how renderFoodTab() iterates it.
+let foodSortMode = localStorage.getItem('pv_food_sort') || 'default';
+
+function getSortedFoodItems() {
+  const items = [...foodItems];
+  switch (foodSortMode) {
+    case 'category':   return items.sort((a, b) => a.category.localeCompare(b.category) || a.name.localeCompare(b.name));
+    case 'name':        return items.sort((a, b) => a.name.localeCompare(b.name));
+    case 'price-desc':  return items.sort((a, b) => (b.qty * b.price) - (a.qty * a.price));
+    case 'price-asc':   return items.sort((a, b) => (a.qty * a.price) - (b.qty * b.price));
+    case 'purchased':   return items.sort((a, b) => Number(a.purchased) - Number(b.purchased));
+    default:            return items;
+  }
+}
+
+function onFoodSortChange() {
+  foodSortMode = document.getElementById('food-sort').value;
+  localStorage.setItem('pv_food_sort', foodSortMode);
+  renderFoodTab();
+}
+
 function setFoodConn(msg) {
   const el = document.getElementById('food-conn-note');
   if (el) el.textContent = msg;
@@ -1091,6 +1121,10 @@ async function initFoodTab() {
 function renderFoodTab() {
   const wrap = document.getElementById('food-table-wrap');
   if (!wrap) return;
+
+  const sortEl = document.getElementById('food-sort');
+  if (sortEl) sortEl.value = foodSortMode;
+
   if (!foodItems.length) { wrap.innerHTML = '<div class="loader">No items yet.</div>'; recalcFood(); return; }
 
   let html = `<div class="table-scroll"><table class="food-table stack-table">
@@ -1098,7 +1132,7 @@ function renderFoodTab() {
       <th>#</th><th>Item</th><th>Qty</th><th>Price</th><th>Total</th><th>Purchased</th><th></th>
     </tr></thead><tbody>`;
 
-  foodItems.forEach((it, i) => {
+  getSortedFoodItems().forEach((it, i) => {
     html += `<tr class="${it.purchased ? 'bought' : ''}" data-id="${it.id}">
       <td class="row-num" data-label="#">${i + 1}</td>
       <td class="f-cell-name cell-lead" data-label="Item">
